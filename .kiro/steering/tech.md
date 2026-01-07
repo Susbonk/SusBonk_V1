@@ -1,7 +1,7 @@
 # Technical Architecture
 
 ## Technology Stack
-**Frontend**: Svelte - Modern, reactive framework for fast, lightweight web interfaces
+**Frontend**: Svelte with TypeScript - Modern, reactive framework for fast, lightweight web interfaces
 **Backend**: Python - API development, data processing, and Telegram bot integration
 **Performance Layer**: Rust - High-performance spam detection algorithms and message processing
 **Database**: PostgreSQL (recommended) - Reliable data storage for user settings and analytics
@@ -10,7 +10,7 @@
 
 ## Architecture Overview
 **Multi-Service Architecture**:
-- **Svelte Frontend**: User dashboard and configuration interface
+- **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views
 - **Python API Server**: REST API for frontend, user management, settings
 - **Rust Message Processor**: High-speed spam detection and filtering engine
 - **Telegram Bot Service**: Python-based bot for group integration

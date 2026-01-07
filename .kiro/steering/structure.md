@@ -5,13 +5,29 @@
 SusBonk/
 ├── frontend/                 # Svelte web dashboard
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── routes/          # SvelteKit pages and API routes
-│   │   ├── lib/             # Shared utilities and stores
-│   │   └── app.html         # Main HTML template
+│   │   ├── lib/
+│   │   │   ├── components/  # Svelte UI components
+│   │   │   │   ├── App.svelte           # Main app component
+│   │   │   │   ├── Dashboard.svelte     # Tabbed dashboard (Dashboard/Logs/Settings)
+│   │   │   │   ├── Onboarding.svelte   # Initial setup flow
+│   │   │   │   ├── DashboardHeader.svelte # Header with controls
+│   │   │   │   ├── ModerationToggle.svelte # Spam category toggles
+│   │   │   │   ├── WhitelistSection.svelte # User whitelist (Settings tab)
+│   │   │   │   ├── CustomBlockSection.svelte # Custom blocks (Settings tab)
+│   │   │   │   ├── RecentBonks.svelte   # Activity logs (Logs tab)
+│   │   │   │   ├── BottomNav.svelte     # Tab navigation
+│   │   │   │   └── Notification.svelte # Toast notifications
+│   │   │   └── stores.ts    # Svelte stores for state management
+│   │   ├── main.ts          # Application entry point
+│   │   ├── app.css          # Global styles
+│   │   ├── theme.css        # Theme variables
+│   │   └── fonts.css        # Font imports
 │   ├── static/              # Static assets (images, icons)
-│   ├── tests/               # Frontend tests
-│   └── package.json
+│   ├── index.html           # Main HTML template
+│   ├── package.json         # Dependencies and scripts
+│   ├── vite.config.ts       # Vite configuration
+│   ├── svelte.config.js     # Svelte configuration
+│   └── tsconfig.json        # TypeScript configuration
 ├── backend/                  # Python API server
 │   ├── src/
 │   │   ├── api/             # FastAPI routes and endpoints
@@ -45,14 +61,14 @@ SusBonk/
 ```
 
 ## File Naming Conventions
-**Frontend**: kebab-case for components, PascalCase for Svelte components
+**Frontend**: PascalCase for Svelte components, kebab-case for CSS files, camelCase for TypeScript
 **Backend**: snake_case for Python files and functions
 **Rust**: snake_case for files, PascalCase for structs and enums
 **Database**: snake_case for table and column names
 **API Endpoints**: kebab-case for URLs, camelCase for JSON fields
 
 ## Module Organization
-**Frontend**: Feature-based organization with shared components
+**Frontend**: Component-based organization with centralized state management via Svelte stores
 **Backend**: Layered architecture (API → Services → Models → Database)
 **Bot**: Handler-based organization by message type and command
 **Rust**: Module-per-feature with clear separation of concerns
