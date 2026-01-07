@@ -1,25 +1,87 @@
 # Project Structure
 
 ## Directory Layout
-[Describe your project's folder structure and organization]
+```
+SusBonk/
+├── frontend/                 # Svelte web dashboard
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── routes/          # SvelteKit pages and API routes
+│   │   ├── lib/             # Shared utilities and stores
+│   │   └── app.html         # Main HTML template
+│   ├── static/              # Static assets (images, icons)
+│   ├── tests/               # Frontend tests
+│   └── package.json
+├── backend/                  # Python API server
+│   ├── src/
+│   │   ├── api/             # FastAPI routes and endpoints
+│   │   ├── models/          # Database models and schemas
+│   │   ├── services/        # Business logic and external integrations
+│   │   ├── utils/           # Helper functions and utilities
+│   │   └── main.py          # Application entry point
+│   ├── tests/               # Backend tests
+│   ├── requirements.txt     # Python dependencies
+│   └── Dockerfile
+├── bot/                      # Telegram bot service
+│   ├── src/
+│   │   ├── handlers/        # Message and command handlers
+│   │   ├── middleware/      # Bot middleware and filters
+│   │   ├── utils/           # Bot utilities and helpers
+│   │   └── main.py          # Bot entry point
+│   ├── tests/
+│   └── requirements.txt
+├── spam-detector/            # Rust performance layer
+│   ├── src/
+│   │   ├── detection/       # Spam detection algorithms
+│   │   ├── models/          # ML models and data structures
+│   │   ├── api/             # HTTP API for detection service
+│   │   └── main.rs          # Rust service entry point
+│   ├── tests/
+│   └── Cargo.toml
+├── docker-compose.yml        # Local development environment
+├── docs/                     # Project documentation
+├── scripts/                  # Deployment and utility scripts
+└── .kiro/                    # Kiro CLI configuration
+```
 
 ## File Naming Conventions
-[How files and directories should be named]
+**Frontend**: kebab-case for components, PascalCase for Svelte components
+**Backend**: snake_case for Python files and functions
+**Rust**: snake_case for files, PascalCase for structs and enums
+**Database**: snake_case for table and column names
+**API Endpoints**: kebab-case for URLs, camelCase for JSON fields
 
 ## Module Organization
-[How code is organized into modules, packages, or components]
+**Frontend**: Feature-based organization with shared components
+**Backend**: Layered architecture (API → Services → Models → Database)
+**Bot**: Handler-based organization by message type and command
+**Rust**: Module-per-feature with clear separation of concerns
 
 ## Configuration Files
-[Location and purpose of config files]
+**Environment**: `.env` files for each service with environment-specific settings
+**Docker**: `docker-compose.yml` for local development, separate production configs
+**Database**: Migration files in `backend/migrations/`
+**CI/CD**: `.github/workflows/` for GitHub Actions
 
 ## Documentation Structure
-[Where and how documentation is organized]
+**API Documentation**: OpenAPI/Swagger specs in `docs/api/`
+**User Documentation**: Markdown files in `docs/user/`
+**Developer Documentation**: Setup and contribution guides in `docs/dev/`
+**Architecture Diagrams**: Visual documentation in `docs/architecture/`
 
 ## Asset Organization
-[How images, styles, and other assets are structured]
+**Frontend Assets**: Static files in `frontend/static/`
+**Bot Assets**: Images and media in `bot/assets/`
+**Documentation Assets**: Screenshots and diagrams in `docs/assets/`
 
 ## Build Artifacts
-[Where compiled/generated files are placed]
+**Frontend**: Built files in `frontend/build/`
+**Backend**: Docker images and compiled Python bytecode
+**Rust**: Compiled binaries in `spam-detector/target/`
+**Deployment**: Packaged containers and deployment manifests
 
 ## Environment-Specific Files
-[How different environments (dev, staging, prod) are handled]
+**Development**: `docker-compose.dev.yml`, `.env.dev`
+**Staging**: `docker-compose.staging.yml`, `.env.staging`
+**Production**: Kubernetes manifests, `.env.prod`
+**Testing**: Test-specific configurations and mock data
