@@ -1,43 +1,32 @@
 # Development Log - Sus Bonk
 
 **Project**: Sus Bonk - Scalable Multi-Platform Spam Detection System  
-**Duration**: January 7, 2026 - Ongoing  
-**Tech Stack**: Svelte Frontend, Python API, Rust Services, PostgreSQL + OpenSearch  
+**Duration**: January 7-8, 2026  
+**Total Time**: ~7 hours  
 
 ## Overview
-Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture. Coffee-fueled database schema design sessions and architectural pivots.
-
-### Jan 08, 2026 - 11:23 AM - Development Update
-
-**Commit**: `917cc24a`  
-**Author**: Susbonk  
-**Changes**: feat: complete architectural overhaul with scalable multi-service design
-
-- Added comprehensive PostgreSQL schema with multi-platform support
-- Separated Rust services: ingestd (ingestion) + alertd (detection)
-- Updated steering docs for scalable architecture
-- Created pre-push git hook for automated devlog updates
-- Rewrote devlog in consistent coffee-fueled style
-- Schema supports 1000+ msg/sec with proper user trust tracking  
-
-**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
-
-**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
 ---
 
-### Jan 08, 2026 - 11:23 AM - Push to master
+## Day 2 (Jan 8) - Backend Logging Infrastructure [3h]
 
-**Author**: Susbonk  
-**Commits Being Pushed**:
-917cc24 feat: complete architectural overhaul with scalable multi-service design
-4e48fcc Used Figma to create mockup, pulled it in here but it was React which is scary because I hate thinking about safety so I spent a few tokens to refactor it to Svelte. Went mobile first and prioritized ease of use. Next I actually need backend and database and this is gonna be pain, need to update frontend later.
-
-**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
-
-**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
-
----
+### Morning (11:00-14:00) - OpenSearch Logging Platform [3h]
+- **9:00-10:30**: Initial architecture planning for logging system
+- **10:30-12:00**: Created unified Rust workspace (`log-platform`) with shared types
+- **12:00-14:00**: Implemented ingestd HTTP service and alertd monitoring service
+- **Challenge**: Kiro kept suggesting inconsistent naming conventions across services
+- **Solution**: Multiple iterations to enforce `logs-{service}-{YYYY.MM.DD}` pattern
+- **Technical Decisions**:
+  - Unified Cargo workspace to eliminate duplicate dependencies
+  - ECS-compliant schema with `@timestamp`, nested `service.name`, `log.level`
+  - Daily indices per service for efficient querying and retention
+  - ISM policy for automatic 7-day log cleanup
+- **Infrastructure**:
+  - OpenSearch + Dashboards with Docker Compose
+  - Healthchecks and proper service dependencies
+  - Init scripts for index templates and retention policies
+- **Kiro Usage**: 100% AI-generated code with extensive back-and-forth to get naming conventions right. Used Kiro for all implementation, debugging Docker builds, and fixing schema inconsistencies.
 
 ---
 
