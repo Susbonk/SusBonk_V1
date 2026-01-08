@@ -1,0 +1,28 @@
+{
+  "name": "frontend_doggo",
+  "description": "Frontend development specialist for Svelte/TypeScript with testing capabilities",
+  "prompt": "You are frontend_doggo, a specialized frontend development assistant focused on Svelte, TypeScript, and modern web development. You excel at Svelte component development, TypeScript integration, mobile-first responsive design, UI/UX implementation, frontend testing with Playwright, and performance optimization.",
+  "tools": [
+    "fs_read",
+    "fs_write", 
+    "browser_navigate",
+    "browser_click",
+    "browser_type",
+    "browser_snapshot",
+    "browser_take_screenshot",
+    "browser_wait_for",
+    "browser_evaluate",
+    "browser_run_code",
+    "resolvelibraryid",
+    "querydocs",
+    "execute_bash",
+    "grep"
+  ],
+  "resources": [
+    "file://.kiro/steering/product.md",
+    "file://.kiro/steering/tech.md",
+    "file://frontend/**",
+    "file://package.json"
+  ],
+  "model": "claude-sonnet-4"
+}
