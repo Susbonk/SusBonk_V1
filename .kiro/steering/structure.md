@@ -37,6 +37,7 @@ SusBonk/
 │   │   └── main.py          # Application entry point
 │   ├── tests/               # Backend tests
 │   ├── requirements.txt     # Python dependencies
+│   ├── schema.sql           # PostgreSQL database schema
 │   └── Dockerfile
 ├── bot/                      # Telegram bot service
 │   ├── src/
@@ -46,14 +47,25 @@ SusBonk/
 │   │   └── main.py          # Bot entry point
 │   ├── tests/
 │   └── requirements.txt
-├── spam-detector/            # Rust performance layer
+├── ingestd/                  # Rust message ingestion service
+│   ├── src/
+│   │   ├── ingestion/       # High-speed message ingestion
+│   │   ├── models/          # Data structures and schemas
+│   │   ├── api/             # HTTP API for ingestion service
+│   │   └── main.rs          # Rust service entry point
+│   ├── tests/
+│   └── Cargo.toml
+├── alertd/                   # Rust spam detection + monitoring service
 │   ├── src/
 │   │   ├── detection/       # Spam detection algorithms
+│   │   ├── monitoring/      # Infrastructure monitoring
+│   │   ├── alerts/          # Email and notification handling
 │   │   ├── models/          # ML models and data structures
 │   │   ├── api/             # HTTP API for detection service
 │   │   └── main.rs          # Rust service entry point
 │   ├── tests/
 │   └── Cargo.toml
+├── redis-example/            # Redis Streams Producer/Worker prototype
 ├── docker-compose.yml        # Local development environment
 ├── docs/                     # Project documentation
 ├── scripts/                  # Deployment and utility scripts

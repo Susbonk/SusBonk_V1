@@ -2,20 +2,22 @@
 
 ## Technology Stack
 **Frontend**: Svelte with TypeScript - Modern, reactive framework for fast, lightweight web interfaces
-**Backend**: Python - API development, data processing, and Telegram bot integration
-**Performance Layer**: Rust - High-performance spam detection algorithms and message processing
-**Database**: PostgreSQL (recommended) - Reliable data storage for user settings and analytics
-**Message Queue**: Redis - Real-time message processing and caching
+**Backend**: Python API Server - Dashboard API, user management, settings
+**Message Processing**: Rust services - `ingestd` for high-speed log ingestion, `alertd` for spam detection + infrastructure monitoring
+**Database**: PostgreSQL - User settings, prompts, chat configurations, user state
+**Logging & Analytics**: OpenSearch - Message logs, alerts, and search analytics
+**Message Queue**: Redis Streams with Consumer Groups - Producer/Worker pattern for message processing
 **Deployment**: Docker containers with cloud hosting (AWS/DigitalOcean)
 
 ## Architecture Overview
 **Multi-Service Architecture**:
 - **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views
 - **Python API Server**: REST API for frontend, user management, settings
-- **Rust Message Processor**: High-speed spam detection and filtering engine
+- **ingestd (Rust)**: High-speed message log ingestion service
+- **alertd (Rust)**: Spam detection engine + infrastructure monitoring + email alerts
 - **Telegram Bot Service**: Python-based bot for group integration
-- **Database Layer**: User data, group settings, analytics, and logs
-- **Message Queue**: Real-time communication between services
+- **Database Layer**: PostgreSQL for user data, prompts, chat settings; OpenSearch for logs and alerts
+- **Message Queue**: Redis Streams with Consumer Groups for Producer/Worker pattern
 
 ## Development Environment
 **Required Tools**:
