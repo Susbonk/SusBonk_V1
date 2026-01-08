@@ -7,6 +7,38 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture. Coffee-fueled database schema design sessions and architectural pivots.
 
+### Jan 08, 2026 - 11:23 AM - Development Update
+
+**Commit**: `917cc24a`  
+**Author**: Susbonk  
+**Changes**: feat: complete architectural overhaul with scalable multi-service design
+
+- Added comprehensive PostgreSQL schema with multi-platform support
+- Separated Rust services: ingestd (ingestion) + alertd (detection)
+- Updated steering docs for scalable architecture
+- Created pre-push git hook for automated devlog updates
+- Rewrote devlog in consistent coffee-fueled style
+- Schema supports 1000+ msg/sec with proper user trust tracking  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 08, 2026 - 11:23 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+917cc24 feat: complete architectural overhaul with scalable multi-service design
+4e48fcc Used Figma to create mockup, pulled it in here but it was React which is scary because I hate thinking about safety so I spent a few tokens to refactor it to Svelte. Went mobile first and prioritized ease of use. Next I actually need backend and database and this is gonna be pain, need to update frontend later.
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
 ---
 
 ## Day 1 (Jan 7) - Foundation & Migration [4h]
