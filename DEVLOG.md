@@ -1,11 +1,94 @@
 # Development Log - Sus Bonk
 
 **Project**: Sus Bonk - Scalable Multi-Platform Spam Detection System  
-**Duration**: January 7-8, 2026  
-**Total Time**: ~7 hours  
+**Duration**: January 7-10, 2026  
+**Total Time**: ~12 hours  
 
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
+
+---
+
+## Day 4 (Jan 10) - Frontend Polish & UI Audit [5h]
+
+### Evening Session (22:00-23:50) - Major Frontend Overhaul
+
+**Commit**: `2bdcd82`  
+**Author**: Susbonk  
+**Changes**: feat(frontend): Add persistent bottom nav, collapsible moderation, whitelist modal & UI cleanup
+
+### Features Implemented
+
+**Bottom Navigation Overhaul**:
+- Made bottom nav always visible (including onboarding screen)
+- Lifted tab state to App.svelte for global control
+- Clicking any tab from onboarding now activates the app
+- **Challenge**: Svelte 5 reactivity issues with prop passing
+- **Solution**: Multiple debugging iterations, eventually got clean implementation
+
+**Moderation Strength Redesign**:
+- Split into collapsible "Built-in Rules" and "Custom Rules" sections
+- Custom blocks now appear with Chill/Normal/Bonkers toggles
+- Chevron icons for expand/collapse state
+- **Kiro Usage**: AI suggested the collapsible pattern, worked first try
+
+**Whitelist Management**:
+- Added "View Whitelisted (count)" button
+- Modal to view all whitelisted users with remove functionality
+- Delete confirmation: "Remove @username from whitelist?"
+- Add user via input field with Enter key support
+
+**Custom Blocks**:
+- Delete confirmation: "Delete 'Name'? This cannot be undone."
+- Added close (X) button to modal for better UX
+
+**Group Context Headers**:
+- Logs now shows "Logs for {GroupName}"
+- Settings now shows "Settings for {GroupName}"
+- Consistent context across all tabs
+
+### UI Audit & Code Cleanup
+
+**The Great Refactoring** (because code quality matters... sometimes):
+
+**Created Design System**:
+- New `types.ts` with shared TabType, StrengthLevel, design tokens
+- CSS classes in `app.css`: `.card`, `.btn`, `.btn-primary`, `.btn-secondary`
+- Modal patterns: `.modal-backdrop`, `.modal-content`
+- `.border-3` utility class (Tailwind doesn't have this by default)
+
+**Removed Duplicates**:
+- TabType was defined in 3 files → now single source of truth
+- ~50 inline `style="font-family: Poppins..."` declarations → global CSS
+- Repeated toggle button markup → `{#each}` loops
+
+**Naming Consistency**:
+- Modal state: `isOpen` / `showListModal` → all now `isModalOpen`
+- Dropdown state: standardized to `isDropdownOpen`
+- Action functions: `addUser`, `removeUser`, `saveBlock`, `deleteBlock`
+
+**Removed Dead Code**:
+- Unused `ComponentType` import from DashboardHeader
+- Redundant wrapper functions
+
+### E2E Testing
+- Created comprehensive Puppeteer test suite
+- 10/10 tests passing
+- Tests cover: navigation, tabs, modals, collapsible sections, confirmations
+
+### Technical Stats
+- **Files Changed**: 15
+- **Lines Added**: 429
+- **Lines Removed**: 316
+- **New Files**: 4 (types.ts, .prettierrc, eslint.config.js, tailwind.config.js)
+
+### Current Mood
+- **Coffee Status**: ☕☕ (late night, moderate intake)
+- **Confidence**: 📈 (UI actually looks professional now)
+- **Code Quality**: ✨ (audit complete, technical debt reduced)
+- **Next Steps**: Backend API integration, real data flow
+
+---
 
 ### Jan 08, 2026 - 02:43 PM - Development Update
 
