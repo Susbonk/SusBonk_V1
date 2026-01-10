@@ -1,22 +1,28 @@
 <script lang="ts">
-  import { Zap, Heart, DollarSign, Briefcase, Pencil, User } from 'lucide-svelte';
+  import { Zap, Heart, DollarSign, Briefcase, Pencil, User, ChevronDown, ChevronUp, Sparkles } from 'lucide-svelte';
   import DashboardHeader from './DashboardHeader.svelte';
   import ModerationToggle from './ModerationToggle.svelte';
   import WhitelistSection from './WhitelistSection.svelte';
   import RecentBonks from './RecentBonks.svelte';
-  import BottomNav from './BottomNav.svelte';
   import CustomBlockSection from './CustomBlockSection.svelte';
   import { appState, togglePlayPause, changeGroup } from '../stores.js';
+  import type { TabType } from '../types';
 
   interface Props {
     onEmergencyStop: () => void;
     onAddGroup: () => void;
+    activeTab: TabType;
   }
 
-  let { onEmergencyStop, onAddGroup }: Props = $props();
+  let { onEmergencyStop, onAddGroup, activeTab }: Props = $props();
 
-  type TabType = 'dashboard' | 'logs' | 'settings';
-  let activeTab = $state<TabType>('dashboard');
+  let builtInExpanded = $state(true);
+  let customExpanded = $state(true);
+
+  const customBlocks = [
+    { id: "1", name: "Competitor Mentions", level: "Normal" },
+    { id: "2", name: "No FUD", level: "Bonkers" }
+  ];
 
   function handleGroupChange(value: string) {
     if (value === "add_new") {
@@ -25,78 +31,88 @@
       changeGroup(value);
     }
   }
-
-  function handleTabChange(tab: TabType) {
-    activeTab = tab;
-  }
-
-  function handleTogglePlay() {
-    togglePlayPause();
-  }
 </script>
 
-<div class="min-h-screen bg-white pb-24">
+<div class="min-h-screen bg-white">
   <div class="max-w-md mx-auto">
     
-    <!-- DASHBOARD TAB -->
     {#if activeTab === 'dashboard'}
-      <div class="p-4 space-y-4 animate-in fade-in duration-300">
-        <!-- Header Section -->
+      <div class="p-4 space-y-4">
         <DashboardHeader 
           bonkCount={$appState.bonkCount}
           isPlaying={$appState.isPlaying}
-          onTogglePlay={handleTogglePlay}
+          onTogglePlay={togglePlayPause}
           groups={$appState.groups}
           activeGroup={$appState.activeGroup}
           onGroupChange={handleGroupChange}
         />
 
-        <!-- Moderation Toggles Section -->
         <div>
-          <h2 class="mb-3" style="font-family: Poppins, sans-serif; font-weight: 800; font-size: 18px;">
-            Moderation Strength
-          </h2>
-          <div class="space-y-3">
-            <ModerationToggle icon={Zap} category="Crypto Scams" initialLevel="Normal" />
-            <ModerationToggle icon={Heart} category="Dating/Romance" initialLevel="Bonkers" />
-            <ModerationToggle icon={DollarSign} category="Money Schemes" initialLevel="Normal" />
-            <ModerationToggle icon={Briefcase} category="Job Offers" initialLevel="Chill" />
-            <ModerationToggle icon={Pencil} category="Spam Links" initialLevel="Normal" />
-            <ModerationToggle icon={User} category="Fake Accounts" initialLevel="Normal" />
+          <h2 class="mb-3 text-lg font-extrabold">Moderation Strength</h2>
+          
+          <!-- Built-in Rules -->
+          <div class="mb-4">
+            <button 
+              onclick={() => builtInExpanded = !builtInExpanded}
+              class="w-full flex items-center justify-between py-2 px-3 bg-gray-100 border-3 border-black mb-2 font-bold text-sm"
+            >
+              <span>Built-in Rules</span>
+              {#if builtInExpanded}<ChevronUp class="w-5 h-5" />{:else}<ChevronDown class="w-5 h-5" />{/if}
+            </button>
+            
+            {#if builtInExpanded}
+              <div class="space-y-3">
+                <ModerationToggle icon={Zap} category="Crypto Scams" initialLevel="Normal" />
+                <ModerationToggle icon={Heart} category="Dating/Romance" initialLevel="Bonkers" />
+                <ModerationToggle icon={DollarSign} category="Money Schemes" initialLevel="Normal" />
+                <ModerationToggle icon={Briefcase} category="Job Offers" initialLevel="Chill" />
+                <ModerationToggle icon={Pencil} category="Spam Links" initialLevel="Normal" />
+                <ModerationToggle icon={User} category="Fake Accounts" initialLevel="Normal" />
+              </div>
+            {/if}
+          </div>
+
+          <!-- Custom Rules -->
+          <div>
+            <button 
+              onclick={() => customExpanded = !customExpanded}
+              class="w-full flex items-center justify-between py-2 px-3 bg-[#FF8A00]/20 border-3 border-black mb-2 font-bold text-sm"
+            >
+              <span>Custom Rules ({customBlocks.length})</span>
+              {#if customExpanded}<ChevronUp class="w-5 h-5" />{:else}<ChevronDown class="w-5 h-5" />{/if}
+            </button>
+            
+            {#if customExpanded}
+              <div class="space-y-3">
+                {#if customBlocks.length === 0}
+                  <div class="text-center py-6 text-gray-500 italic border-2 border-dashed border-gray-300">
+                    No custom rules. Add them in Settings.
+                  </div>
+                {:else}
+                  {#each customBlocks as block (block.id)}
+                    <ModerationToggle icon={Sparkles} category={block.name} initialLevel={block.level} />
+                  {/each}
+                {/if}
+              </div>
+            {/if}
           </div>
         </div>
-
-
       </div>
     {/if}
 
-    <!-- LOGS TAB -->
     {#if activeTab === 'logs'}
-      <div class="p-4 space-y-4 animate-in fade-in duration-300">
-        <h2 class="text-2xl mb-4" style="font-family: Poppins, sans-serif; font-weight: 900;">
-          Activity Logs
-        </h2>
-        <!-- Recent Bonks -->
+      <div class="p-4 space-y-4">
+        <h2 class="text-2xl font-black">Logs for {$appState.activeGroup}</h2>
         <RecentBonks />
       </div>
     {/if}
 
-    <!-- SETTINGS TAB -->
     {#if activeTab === 'settings'}
-      <div class="p-4 space-y-4 animate-in fade-in duration-300">
-        <h2 class="text-2xl mb-4" style="font-family: Poppins, sans-serif; font-weight: 900;">
-          Settings
-        </h2>
-        
-        <!-- Whitelist Section -->
+      <div class="p-4 space-y-4">
+        <h2 class="text-2xl font-black">Settings for {$appState.activeGroup}</h2>
         <WhitelistSection />
-
-        <!-- Custom Blocks -->
         <CustomBlockSection />
       </div>
     {/if}
   </div>
-
-  <!-- Bottom Navigation -->
-  <BottomNav {activeTab} onTabChange={handleTabChange} />
 </div>
