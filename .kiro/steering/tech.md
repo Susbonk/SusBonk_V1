@@ -2,7 +2,9 @@
 
 ## Technology Stack
 **Frontend**: Svelte with TypeScript - Modern, reactive framework for fast, lightweight web interfaces
-**Backend**: Unified Rust workspace - `log-platform` with shared types and multiple service binaries
+**Backend**: 
+- **Log Platform** (Rust Workspace) - Unified `log-platform` with shared types and multiple service binaries
+- **API Server** (Python) - Dashboard API, user management, settings (planned)
 **Message Processing**: 
 - `ingestd` (Rust) - HTTP log ingestion service with bulk indexing to OpenSearch
 - `alertd` (Rust) - Spam detection engine + infrastructure monitoring + email alerts
@@ -13,7 +15,11 @@
 
 ## Architecture Overview
 **Multi-Service Architecture**:
-- **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views (in progress)
+- **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views
+  - Persistent bottom navigation
+  - Collapsible moderation sections
+  - Whitelist management modal
+  - UI design system with reusable components
 - **log-platform (Rust Workspace)**: Unified Cargo workspace with shared types
   - **ingestd**: HTTP server on port 8080, `/ingest` endpoint, bulk indexing to OpenSearch
   - **alertd**: Spam detection + monitoring, writes logs via ingestd HTTP API
@@ -22,6 +28,7 @@
   - Dashboards (osd01) on port 5601 for log visualization
   - Daily index pattern: `logs-{service}-{YYYY.MM.DD}`
   - ISM policy for automatic 7-day retention
+- **Python API Server**: REST API for frontend, user management, settings (planned)
 - **Telegram Bot Service**: Python-based bot for group integration (planned)
 - **Database Layer**: PostgreSQL for user data (planned); OpenSearch for logs and alerts (active)
 - **Message Queue**: Redis Streams with Consumer Groups (prototyped in redis-example/)

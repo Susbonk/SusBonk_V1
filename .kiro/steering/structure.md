@@ -28,22 +28,36 @@ SusBonk/
 │   ├── vite.config.ts       # Vite configuration
 │   ├── svelte.config.js     # Svelte configuration
 │   └── tsconfig.json        # TypeScript configuration
-├── backend/                  # Backend services and infrastructure
-│   ├── log-platform/        # Unified Rust logging platform (Cargo workspace)
-│   │   ├── src/
-│   │   │   ├── lib.rs       # Shared types (LogEvent, Service, LogMeta, Trace)
-│   │   │   ├── ingestd.rs   # HTTP log ingestion service binary
-│   │   │   └── alertd.rs    # Spam detection + monitoring binary
-│   │   ├── Dockerfile.ingestd   # Multi-stage build for ingestd
-│   │   ├── Dockerfile.alertd    # Multi-stage build for alertd
-│   │   └── Cargo.toml       # Unified workspace dependencies
-│   ├── init/                # OpenSearch initialization
-│   │   ├── init.sh          # Setup script for indices and policies
-│   │   ├── index-template.json  # ECS-compliant field mappings
-│   │   └── ism-policy.json  # 7-day retention policy
-│   ├── docker-compose.yml   # Full stack: OpenSearch, Dashboards, ingestd, alertd
-│   └── README.md            # Backend documentation
+├── log-platform/             # Unified Rust logging platform (Cargo workspace)
+│   ├── src/
+│   │   ├── lib.rs           # Shared types (LogEvent, Service, LogMeta, Trace)
+│   │   ├── ingestd.rs       # HTTP log ingestion service binary
+│   │   └── alertd.rs        # Spam detection + monitoring binary
+│   ├── Dockerfile.ingestd   # Multi-stage build for ingestd
+│   ├── Dockerfile.alertd    # Multi-stage build for alertd
+│   └── Cargo.toml           # Unified workspace dependencies
+├── init/                     # OpenSearch initialization
+│   ├── init.sh              # Setup script for indices and policies
+│   ├── index-template.json  # ECS-compliant field mappings
+│   └── ism-policy.json      # 7-day retention policy
+├── backend/                  # Python API server (planned)
+│   ├── src/
+│   │   ├── api/             # FastAPI routes and endpoints
+│   │   ├── models/          # Database models and schemas
+│   │   ├── services/        # Business logic and external integrations
+│   │   ├── utils/           # Helper functions and utilities
+│   │   └── main.py          # Application entry point
+│   ├── tests/               # Backend tests
+│   ├── requirements.txt     # Python dependencies
+│   ├── schema.sql           # PostgreSQL database schema
+│   └── Dockerfile
 ├── bot/                      # Telegram bot service (planned)
+│   ├── src/
+│   │   ├── handlers/        # Message and command handlers
+│   │   ├── middleware/      # Bot middleware and filters
+│   │   ├── utils/           # Bot utilities and helpers
+│   │   └── main.py          # Bot entry point
+│   ├── tests/
 │   └── requirements.txt
 ├── redis-example/            # Redis Streams Producer/Worker prototype
 ├── docker-compose.yml        # Local development environment
@@ -61,9 +75,9 @@ SusBonk/
 
 ## Module Organization
 **Frontend**: Component-based organization with centralized state management via Svelte stores
-**Backend**: Unified Rust workspace with shared library (lib.rs) and multiple binaries (ingestd, alertd)
-**Log Platform**: Cargo workspace architecture with shared types and separate service binaries
-**Bot**: Handler-based organization by message type and command (planned)
+**Log Platform**: Unified Rust workspace with shared library (lib.rs) and multiple binaries (ingestd, alertd)
+**Backend**: Layered architecture (API → Services → Models → Database) - planned
+**Bot**: Handler-based organization by message type and command - planned
 **Rust**: Module-per-feature with clear separation of concerns, multi-stage Docker builds
 
 ## Configuration Files

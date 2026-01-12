@@ -17,10 +17,10 @@ SusBonk is an easy-to-use web application that blocks spammers and scammers in T
 - **Automated Spam Detection**: AI-powered detection of spam and scam messages
 - **Unified Logging Platform**: Centralized log ingestion and monitoring with OpenSearch
 - **Real-time Monitoring**: Live view of system health and spam detection activity
-- **Telegram Bot Integration**: Easy bot setup for Telegram groups (planned)
-- **User-Friendly Dashboard**: Intuitive web interface for non-technical users (in progress)
-- **Granular Control Settings**: Adjustable sensitivity and blocking rules (planned)
-- **Whitelist/Blacklist Management**: Easy user and keyword management (planned)
+- **Telegram Bot Integration**: Easy bot setup for Telegram groups
+- **User-Friendly Dashboard**: Intuitive web interface for non-technical users
+- **Granular Control Settings**: Adjustable sensitivity and blocking rules
+- **Whitelist/Blacklist Management**: Easy user and keyword management
 - **Activity Reports**: Analytics on group protection effectiveness via OpenSearch Dashboards
 - **Multi-Platform Support**: Extensible to other chat platforms beyond Telegram
 
@@ -33,15 +33,19 @@ SusBonk is an easy-to-use web application that blocks spammers and scammers in T
 - Daily index rotation with 7-day retention policy
 - Docker Compose orchestration with health checks
 - Redis Streams Producer/Worker prototype
+- Svelte frontend dashboard with persistent bottom nav
+- UI design system with reusable components
+- Whitelist management modal
+- Collapsible moderation sections
 
 **In Progress**:
-- Svelte frontend dashboard with tabbed interface
+- Backend API integration with frontend
 - Custom Kiro CLI workflow prompts for testing and deployment
 
 **Planned**:
 - Telegram bot integration
 - PostgreSQL for user settings and configurations
-- Full dashboard functionality with real-time updates
+- Real-time data flow from backend to dashboard
 
 ## Business Objectives
 - **User Satisfaction**: Provide effective spam protection without complexity

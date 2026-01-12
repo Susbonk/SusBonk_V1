@@ -1,11 +1,23 @@
 # Development Log - Sus Bonk
 
-**Project**: Sus Bonk - Scalable Multi-Platform Spam Detection  
-**Duration**: January 7-8, 2026  
-**Total Time**: ~7 hours  
+**Project**: Sus Bonk - Scalable Multi-Platform Spam Detection System  
+**Duration**: January 7-12, 2026  
+**Total Time**: ~12 hours  
 
 ## Overview
-Building a scalable spam detection platform for Telegram (future Discord support). Started mobile-first, panicked about performance, evolved into a multi-service architecture. Coffee-fueled schema sessions and architectural pivots. The usual.
+Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
+
+---
+
+### Jan 12, 2026 - 08:21 PM - Steering Documentation Update
+
+**Commit**: `26bb552`  
+**Author**: Susbonk  
+**Changes**: docs: add devlog entries for steering doc updates  
+
+**Technical Notes**: Updated steering documents to reflect actual implementation. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
 
 ---
 
@@ -30,6 +42,132 @@ Building a scalable spam detection platform for Telegram (future Discord support
 **Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
 
 **Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+## Day 4 (Jan 10) - Frontend Polish & UI Audit [5h]
+
+### Evening Session (22:00-23:50) - Major Frontend Overhaul
+
+**Commit**: `2bdcd82`  
+**Author**: Susbonk  
+**Changes**: feat(frontend): Add persistent bottom nav, collapsible moderation, whitelist modal & UI cleanup
+
+### Features Implemented
+
+**Bottom Navigation Overhaul**:
+- Made bottom nav always visible (including onboarding screen)
+- Lifted tab state to App.svelte for global control
+- Clicking any tab from onboarding now activates the app
+- **Challenge**: Svelte 5 reactivity issues with prop passing
+- **Solution**: Multiple debugging iterations, eventually got clean implementation
+
+**Moderation Strength Redesign**:
+- Split into collapsible "Built-in Rules" and "Custom Rules" sections
+- Custom blocks now appear with Chill/Normal/Bonkers toggles
+- Chevron icons for expand/collapse state
+- **Kiro Usage**: AI suggested the collapsible pattern, worked first try
+
+**Whitelist Management**:
+- Added "View Whitelisted (count)" button
+- Modal to view all whitelisted users with remove functionality
+- Delete confirmation: "Remove @username from whitelist?"
+- Add user via input field with Enter key support
+
+**Custom Blocks**:
+- Delete confirmation: "Delete 'Name'? This cannot be undone."
+- Added close (X) button to modal for better UX
+
+**Group Context Headers**:
+- Logs now shows "Logs for {GroupName}"
+- Settings now shows "Settings for {GroupName}"
+- Consistent context across all tabs
+
+### UI Audit & Code Cleanup
+
+**The Great Refactoring** (because code quality matters... sometimes):
+
+**Created Design System**:
+- New `types.ts` with shared TabType, StrengthLevel, design tokens
+- CSS classes in `app.css`: `.card`, `.btn`, `.btn-primary`, `.btn-secondary`
+- Modal patterns: `.modal-backdrop`, `.modal-content`
+- `.border-3` utility class (Tailwind doesn't have this by default)
+
+**Removed Duplicates**:
+- TabType was defined in 3 files → now single source of truth
+- ~50 inline `style="font-family: Poppins..."` declarations → global CSS
+- Repeated toggle button markup → `{#each}` loops
+
+**Naming Consistency**:
+- Modal state: `isOpen` / `showListModal` → all now `isModalOpen`
+- Dropdown state: standardized to `isDropdownOpen`
+- Action functions: `addUser`, `removeUser`, `saveBlock`, `deleteBlock`
+
+**Removed Dead Code**:
+- Unused `ComponentType` import from DashboardHeader
+- Redundant wrapper functions
+
+### E2E Testing
+- Created comprehensive Puppeteer test suite
+- 10/10 tests passing
+- Tests cover: navigation, tabs, modals, collapsible sections, confirmations
+
+### Technical Stats
+- **Files Changed**: 15
+- **Lines Added**: 429
+- **Lines Removed**: 316
+- **New Files**: 4 (types.ts, .prettierrc, eslint.config.js, tailwind.config.js)
+
+### Current Mood
+- **Coffee Status**: ☕☕ (late night, moderate intake)
+- **Confidence**: 📈 (UI actually looks professional now)
+- **Code Quality**: ✨ (audit complete, technical debt reduced)
+- **Next Steps**: Backend API integration, real data flow
+
+---
+
+### Jan 08, 2026 - 02:43 PM - Development Update
+
+**Commit**: `55ad24da`  
+**Author**: Susbonk  
+**Changes**: docs: update DEVLOG with Day 2 logging infrastructure work  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 08, 2026 - 02:44 PM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+55ad24d docs: update DEVLOG with Day 2 logging infrastructure work
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+## Day 2 (Jan 8) - Backend Logging Infrastructure [3h]
+
+### Morning (11:00-14:00) - OpenSearch Logging Platform [3h]
+- **9:00-10:30**: Initial architecture planning for logging system
+- **10:30-12:00**: Created unified Rust workspace (`log-platform`) with shared types
+- **12:00-14:00**: Implemented ingestd HTTP service and alertd monitoring service
+- **Challenge**: Kiro kept suggesting inconsistent naming conventions across services
+- **Solution**: Multiple iterations to enforce `logs-{service}-{YYYY.MM.DD}` pattern
+- **Technical Decisions**:
+  - Unified Cargo workspace to eliminate duplicate dependencies
+  - ECS-compliant schema with `@timestamp`, nested `service.name`, `log.level`
+  - Daily indices per service for efficient querying and retention
+  - ISM policy for automatic 7-day log cleanup
+- **Infrastructure**:
+  - OpenSearch + Dashboards with Docker Compose
+  - Healthchecks and proper service dependencies
+  - Init scripts for index templates and retention policies
+- **Kiro Usage**: 100% AI-generated code with extensive back-and-forth to get naming conventions right. Used Kiro for all implementation, debugging Docker builds, and fixing schema inconsistencies.
 
 ---
 
@@ -149,3 +287,5 @@ Multi-platform support, AI prompt system, user trust tracking. Properly normaliz
 - Multi-service architecture adds overhead but enables scaling
 - AI-assisted development works best with clear steering documents
 - Naming conventions require explicit enforcement
+
+---
