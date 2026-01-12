@@ -28,43 +28,23 @@ SusBonk/
 │   ├── vite.config.ts       # Vite configuration
 │   ├── svelte.config.js     # Svelte configuration
 │   └── tsconfig.json        # TypeScript configuration
-├── backend/                  # Python API server
-│   ├── src/
-│   │   ├── api/             # FastAPI routes and endpoints
-│   │   ├── models/          # Database models and schemas
-│   │   ├── services/        # Business logic and external integrations
-│   │   ├── utils/           # Helper functions and utilities
-│   │   └── main.py          # Application entry point
-│   ├── tests/               # Backend tests
-│   ├── requirements.txt     # Python dependencies
-│   ├── schema.sql           # PostgreSQL database schema
-│   └── Dockerfile
-├── bot/                      # Telegram bot service
-│   ├── src/
-│   │   ├── handlers/        # Message and command handlers
-│   │   ├── middleware/      # Bot middleware and filters
-│   │   ├── utils/           # Bot utilities and helpers
-│   │   └── main.py          # Bot entry point
-│   ├── tests/
+├── backend/                  # Backend services and infrastructure
+│   ├── log-platform/        # Unified Rust logging platform (Cargo workspace)
+│   │   ├── src/
+│   │   │   ├── lib.rs       # Shared types (LogEvent, Service, LogMeta, Trace)
+│   │   │   ├── ingestd.rs   # HTTP log ingestion service binary
+│   │   │   └── alertd.rs    # Spam detection + monitoring binary
+│   │   ├── Dockerfile.ingestd   # Multi-stage build for ingestd
+│   │   ├── Dockerfile.alertd    # Multi-stage build for alertd
+│   │   └── Cargo.toml       # Unified workspace dependencies
+│   ├── init/                # OpenSearch initialization
+│   │   ├── init.sh          # Setup script for indices and policies
+│   │   ├── index-template.json  # ECS-compliant field mappings
+│   │   └── ism-policy.json  # 7-day retention policy
+│   ├── docker-compose.yml   # Full stack: OpenSearch, Dashboards, ingestd, alertd
+│   └── README.md            # Backend documentation
+├── bot/                      # Telegram bot service (planned)
 │   └── requirements.txt
-├── ingestd/                  # Rust message ingestion service
-│   ├── src/
-│   │   ├── ingestion/       # High-speed message ingestion
-│   │   ├── models/          # Data structures and schemas
-│   │   ├── api/             # HTTP API for ingestion service
-│   │   └── main.rs          # Rust service entry point
-│   ├── tests/
-│   └── Cargo.toml
-├── alertd/                   # Rust spam detection + monitoring service
-│   ├── src/
-│   │   ├── detection/       # Spam detection algorithms
-│   │   ├── monitoring/      # Infrastructure monitoring
-│   │   ├── alerts/          # Email and notification handling
-│   │   ├── models/          # ML models and data structures
-│   │   ├── api/             # HTTP API for detection service
-│   │   └── main.rs          # Rust service entry point
-│   ├── tests/
-│   └── Cargo.toml
 ├── redis-example/            # Redis Streams Producer/Worker prototype
 ├── docker-compose.yml        # Local development environment
 ├── docs/                     # Project documentation
@@ -81,9 +61,10 @@ SusBonk/
 
 ## Module Organization
 **Frontend**: Component-based organization with centralized state management via Svelte stores
-**Backend**: Layered architecture (API → Services → Models → Database)
-**Bot**: Handler-based organization by message type and command
-**Rust**: Module-per-feature with clear separation of concerns
+**Backend**: Unified Rust workspace with shared library (lib.rs) and multiple binaries (ingestd, alertd)
+**Log Platform**: Cargo workspace architecture with shared types and separate service binaries
+**Bot**: Handler-based organization by message type and command (planned)
+**Rust**: Module-per-feature with clear separation of concerns, multi-stage Docker builds
 
 ## Configuration Files
 **Environment**: `.env` files for each service with environment-specific settings

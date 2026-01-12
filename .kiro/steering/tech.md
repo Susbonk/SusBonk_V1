@@ -2,22 +2,38 @@
 
 ## Technology Stack
 **Frontend**: Svelte with TypeScript - Modern, reactive framework for fast, lightweight web interfaces
-**Backend**: Python API Server - Dashboard API, user management, settings
-**Message Processing**: Rust services - `ingestd` for high-speed log ingestion, `alertd` for spam detection + infrastructure monitoring
-**Database**: PostgreSQL - User settings, prompts, chat configurations, user state
-**Logging & Analytics**: OpenSearch - Message logs, alerts, and search analytics
-**Message Queue**: Redis Streams with Consumer Groups - Producer/Worker pattern for message processing
-**Deployment**: Docker containers with cloud hosting (AWS/DigitalOcean)
+**Backend**: Unified Rust workspace - `log-platform` with shared types and multiple service binaries
+**Message Processing**: 
+- `ingestd` (Rust) - HTTP log ingestion service with bulk indexing to OpenSearch
+- `alertd` (Rust) - Spam detection engine + infrastructure monitoring + email alerts
+**Database**: PostgreSQL - User settings, prompts, chat configurations (planned)
+**Logging & Analytics**: OpenSearch + Dashboards - ECS-compliant logs with daily indices and 7-day retention
+**Message Queue**: Redis Streams with Consumer Groups - Producer/Worker pattern (prototyped)
+**Deployment**: Docker Compose with multi-stage builds, cloud hosting (AWS/DigitalOcean planned)
 
 ## Architecture Overview
 **Multi-Service Architecture**:
-- **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views
-- **Python API Server**: REST API for frontend, user management, settings
-- **ingestd (Rust)**: High-speed message log ingestion service
-- **alertd (Rust)**: Spam detection engine + infrastructure monitoring + email alerts
-- **Telegram Bot Service**: Python-based bot for group integration
-- **Database Layer**: PostgreSQL for user data, prompts, chat settings; OpenSearch for logs and alerts
-- **Message Queue**: Redis Streams with Consumer Groups for Producer/Worker pattern
+- **Svelte Frontend**: Tabbed dashboard interface with Dashboard, Logs, and Settings views (in progress)
+- **log-platform (Rust Workspace)**: Unified Cargo workspace with shared types
+  - **ingestd**: HTTP server on port 8080, `/ingest` endpoint, bulk indexing to OpenSearch
+  - **alertd**: Spam detection + monitoring, writes logs via ingestd HTTP API
+- **OpenSearch Stack**: 
+  - OpenSearch (os01) on port 9200 with cluster health checks
+  - Dashboards (osd01) on port 5601 for log visualization
+  - Daily index pattern: `logs-{service}-{YYYY.MM.DD}`
+  - ISM policy for automatic 7-day retention
+- **Telegram Bot Service**: Python-based bot for group integration (planned)
+- **Database Layer**: PostgreSQL for user data (planned); OpenSearch for logs and alerts (active)
+- **Message Queue**: Redis Streams with Consumer Groups (prototyped in redis-example/)
+
+## Implementation Details
+**Log Platform Architecture**:
+- **Shared Library** (`lib.rs`): Common types (LogEvent, Service, LogMeta, Trace)
+- **ECS-Compliant Schema**: @timestamp, nested service.name, log.level fields
+- **Index Strategy**: Service-specific daily indices with unified "logs" alias
+- **Service Dependencies**: alertd → log-ingest health → os01 health
+- **Healthchecks**: Curl-based checks prevent startup failures
+- **Docker Images**: Multi-stage builds (157-168MB final size)
 
 ## Development Environment
 **Required Tools**:

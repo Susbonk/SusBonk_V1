@@ -15,13 +15,33 @@ SusBonk is an easy-to-use web application that blocks spammers and scammers in T
 
 ## Key Features
 - **Automated Spam Detection**: AI-powered detection of spam and scam messages
-- **Telegram Bot Integration**: Easy bot setup for Telegram groups
-- **User-Friendly Dashboard**: Intuitive web interface for non-technical users
-- **Granular Control Settings**: Adjustable sensitivity and blocking rules
-- **Real-time Monitoring**: Live view of blocked content and bot activity
-- **Whitelist/Blacklist Management**: Easy user and keyword management
-- **Activity Reports**: Simple analytics on group protection effectiveness
+- **Unified Logging Platform**: Centralized log ingestion and monitoring with OpenSearch
+- **Real-time Monitoring**: Live view of system health and spam detection activity
+- **Telegram Bot Integration**: Easy bot setup for Telegram groups (planned)
+- **User-Friendly Dashboard**: Intuitive web interface for non-technical users (in progress)
+- **Granular Control Settings**: Adjustable sensitivity and blocking rules (planned)
+- **Whitelist/Blacklist Management**: Easy user and keyword management (planned)
+- **Activity Reports**: Analytics on group protection effectiveness via OpenSearch Dashboards
 - **Multi-Platform Support**: Extensible to other chat platforms beyond Telegram
+
+## Current Implementation Status
+**Completed**:
+- Unified Rust logging platform with shared types
+- HTTP log ingestion service (ingestd) with bulk indexing
+- Spam detection and monitoring service (alertd)
+- OpenSearch integration with ECS-compliant schema
+- Daily index rotation with 7-day retention policy
+- Docker Compose orchestration with health checks
+- Redis Streams Producer/Worker prototype
+
+**In Progress**:
+- Svelte frontend dashboard with tabbed interface
+- Custom Kiro CLI workflow prompts for testing and deployment
+
+**Planned**:
+- Telegram bot integration
+- PostgreSQL for user settings and configurations
+- Full dashboard functionality with real-time updates
 
 ## Business Objectives
 - **User Satisfaction**: Provide effective spam protection without complexity
