@@ -9,6 +9,30 @@ Building a scalable spam detection platform for Telegram (future Discord support
 
 ---
 
+### Jan 12, 2026 - 08:21 PM - Development Update
+
+**Commit**: `138adae5`  
+**Author**: Susbonk  
+**Changes**: chore: update .DS_Store files  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 12, 2026 - 08:21 PM - Development Update
+
+**Commit**: `e697c347`  
+**Author**: Susbonk  
+**Changes**: docs: update steering documents to reflect actual implementation  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ## Day 1 (Jan 7) - Foundation & Migration [4h]
 
 ### Morning - Design & Immediately Regret
