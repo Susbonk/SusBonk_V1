@@ -66,7 +66,7 @@ services:
 
   alert-engine:
     build:
-      context: ./log-platform
+      context: ../log-platform
       dockerfile: Dockerfile.alertd
     container_name: susbonk-alertd
     environment:
@@ -84,7 +84,7 @@ services:
 
   log-ingest:
     build:
-      context: ./log-platform
+      context: ../log-platform
       dockerfile: Dockerfile.ingestd
     container_name: susbonk-ingestd
     environment:
