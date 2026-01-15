@@ -27,7 +27,7 @@ services:
     networks:
       - susbonk-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,15 +100,87 @@ services:
       - susbonk-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
 
+  pg-database:
+    image: postgres:16-alpine
+    container_name: susbonk-postgres
+    env_file:
+      - ../.env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - db-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  pg-init:
+    image: postgres:16-alpine
+    container_name: susbonk-pg-init
+    env_file:
+      - ../.env
+    environment:
+      - PGHOST=pg-database
+      - PGPORT=5432
+      - PGDATABASE=${POSTGRES_DB}
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./schema.sql:/schema.sql
+    command: >
+      sh -c " echo 'Waiting for PostgreSQL...' && until pg_isready -h pg-database -U ${POSTGRES_USER}; do sleep 1; done && echo 'Checking if schema exists...' && if psql -h pg-database -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c '\\dt' | grep -q 'users'; then
+        echo 'Schema already exists, skipping initialization';
+      else
+        echo 'Loading schema.sql...' &&
+        psql -h pg-database -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /schema.sql &&
+        echo 'Schema loaded successfully';
+      fi "
+    depends_on:
+      pg-database:
+        condition: service_healthy
+    networks:
+      - db-net
+    restart: "no"
+
+  admin:
+    container_name: susbonk-admin
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "5050:5000"
+    command:
+      - ./start.sh
+    depends_on:
+      pg-init:
+        condition: service_completed_successfully
+    networks:
+      - db-net
+    restart: unless-stopped
+
 volumes:
   opensearch-data:
+  postgres-data:
+
 
 networks:
   susbonk-network:
+    driver: bridge
+  db-net:
     driver: bridge

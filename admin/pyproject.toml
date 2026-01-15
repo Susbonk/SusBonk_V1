@@ -1,0 +1,9 @@
+[project]
+name = "susbonk-admin"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=6.0.1",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.2.1",
+]

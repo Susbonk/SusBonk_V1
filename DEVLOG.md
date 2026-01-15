@@ -7,6 +7,39 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 13, 2026 - 11:31 AM - Development Update
+
+**Commit**: `56c21c19`  
+**Author**: Susbonk  
+**Changes**: refactor: move log-platform to root as separate service
+
+- Move log-platform from backend/ to root level
+- Update docker-compose.yml to reference ../log-platform
+- log-platform is a shared service used by multiple components  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 13, 2026 - 10:07 AM - Development Update
+
+**Commit**: `7c52192d`  
+**Author**: Susbonk  
+**Changes**: chore: consolidate backend services into backend/ directory
+
+- Move ingestd, alertd, log-platform, and init into backend/
+- Remove duplicate root-level docker-compose.yml
+- All services now organized under backend/ for cleaner structure
+- Docker compose paths remain unchanged (relative ./paths work)  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 12, 2026 - 09:03 PM - Development Update
 
 **Commit**: `37b91d88`  

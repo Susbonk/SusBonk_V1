@@ -1,137 +1,255 @@
--- SusBonk Database Schema
--- PostgreSQL schema for user data, prompts, and chat configurations
+-- SusBonk Database Schema (UUID-based)
+-- PostgreSQL schema aligned with Django admin panel
+-- Migrated from BIGINT platform IDs to UUID primary keys
 
--- Global user information
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================================================
+-- USERS TABLE
+-- Internal user with platform-specific IDs as separate columns
+-- ============================================================================
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY,  -- Platform-specific user ID
-    platform VARCHAR(20) NOT NULL DEFAULT 'telegram',  -- 'telegram', 'discord', etc.
-    username VARCHAR(255),
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    language_code VARCHAR(10),
-    is_bot BOOLEAN DEFAULT false,
-    is_premium BOOLEAN DEFAULT false,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    
+    -- User profile
+    username VARCHAR(50),
+    email VARCHAR(100),
+    password_hash VARCHAR(255),
+    
+    -- Platform-specific user IDs (external identifiers)
+    telegram_user_id BIGINT UNIQUE,
+    discord_user_id BIGINT UNIQUE,
+    
+    -- Metadata (matches Django BaseModel)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE(id, platform)
+    is_active BOOLEAN DEFAULT true
 );
 
--- Core chat configuration
+-- ============================================================================
+-- CHATS TABLE
+-- Chat configuration with platform type and platform-specific chat ID
+-- ============================================================================
 CREATE TABLE chats (
-    id BIGINT PRIMARY KEY,  -- Platform-specific chat ID
-    platform VARCHAR(20) NOT NULL DEFAULT 'telegram',  -- 'telegram', 'discord', etc.
-    owner_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    
+    -- Owner relationship
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Platform identification
+    type VARCHAR(16) NOT NULL CHECK (type IN ('telegram', 'discord')),
+    platform_chat_id BIGINT NOT NULL,
+    
+    -- Chat info
     title VARCHAR(255),
-    chat_type VARCHAR(50) NOT NULL,  -- 'group', 'supergroup', 'channel', 'guild', etc.
-    is_active BOOLEAN DEFAULT true,
+    chat_link VARCHAR(512),
+    
+    -- AI configuration
+    enable_ai_check BOOLEAN DEFAULT false,
+    prompts_threshold FLOAT DEFAULT 0.35 CHECK (prompts_threshold >= 0 AND prompts_threshold <= 1),
+    custom_prompt_threshold FLOAT DEFAULT 0.35 CHECK (custom_prompt_threshold >= 0 AND custom_prompt_threshold <= 1),
+    
+    -- Cleanup settings
+    cleanup_mentions BOOLEAN DEFAULT false,
+    cleanup_emojis BOOLEAN DEFAULT false,
+    cleanup_links BOOLEAN DEFAULT false,
+    allowed_link_domains JSONB,
+    
+    -- Statistics counters
+    processed_messages INTEGER DEFAULT 0,
+    spam_detected INTEGER DEFAULT 0,
+    messages_deleted INTEGER DEFAULT 0,
+    
+    -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
     
-    -- AI sensitivity controls
-    prompts_threshold FLOAT DEFAULT 0.7 CHECK (prompts_threshold >= 0 AND prompts_threshold <= 1),
-    custom_prompt_threshold FLOAT DEFAULT 0.7 CHECK (custom_prompt_threshold >= 0 AND custom_prompt_threshold <= 1),
-    
-    -- Heuristic spam filter toggles
-    cleanup_mentions BOOLEAN DEFAULT true,
-    cleanup_emojis BOOLEAN DEFAULT true,
-    cleanup_links BOOLEAN DEFAULT true,
-    
-    -- Whitelisted domains (JSON array)
-    allowed_link_domains JSONB DEFAULT '[]'::jsonb,
-    
-    UNIQUE(id, platform)
+    -- Unique constraint: one chat per platform
+    CONSTRAINT uk_chats_type_platform_chat_id UNIQUE (type, platform_chat_id)
 );
 
+-- ============================================================================
+-- PROMPTS TABLE
 -- Pre-made AI prompts for spam detection
+-- ============================================================================
 CREATE TABLE prompts (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
-    prompt_text TEXT NOT NULL,
-    category VARCHAR(50),  -- 'spam', 'scam', 'crypto', 'nsfw', etc.
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- User-created custom prompts
-CREATE TABLE custom_prompts (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    prompt_text TEXT NOT NULL,
-    is_active BOOLEAN DEFAULT true,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100),
+    prompt_text TEXT,
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE(user_id, name)
+    is_active BOOLEAN DEFAULT true
 );
 
--- Link pre-made prompts to chats (many-to-many)
-CREATE TABLE chat_prompts (
-    id SERIAL PRIMARY KEY,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-    prompt_id INTEGER NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
-    is_enabled BOOLEAN DEFAULT true,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-- ============================================================================
+-- CUSTOM PROMPTS TABLE
+-- User-created custom prompts
+-- ============================================================================
+CREATE TABLE custom_prompts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(100),
+    prompt_text TEXT,
     
-    UNIQUE(chat_id, prompt_id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
 );
 
--- Link custom prompts to chats (many-to-many, though custom_prompts already has chat_id)
-CREATE TABLE chat_custom_prompts (
-    id SERIAL PRIMARY KEY,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-    custom_prompt_id INTEGER NOT NULL REFERENCES custom_prompts(id) ON DELETE CASCADE,
-    is_enabled BOOLEAN DEFAULT true,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-- ============================================================================
+-- USER STATES TABLE
+-- User state tracking per chat (note: plural table name for Django)
+-- ============================================================================
+CREATE TABLE user_states (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     
-    UNIQUE(chat_id, custom_prompt_id)
-);
-
--- User state tracking per chat
-CREATE TABLE user_state (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    chat_id BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    -- External platform user ID (not FK - external identifier)
+    external_user_id BIGINT NOT NULL,
     
     -- Trust and activity tracking
-    is_trusted BOOLEAN DEFAULT false,
-    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    valid_message_count INTEGER DEFAULT 0,
-    last_message_at TIMESTAMP,
+    trusted BOOLEAN DEFAULT false,
+    joined_at TIMESTAMP,
+    valid_messages INTEGER DEFAULT 0,
     
-    -- Moderation tracking
-    warning_count INTEGER DEFAULT 0,
-    is_banned BOOLEAN DEFAULT false,
-    banned_at TIMESTAMP,
-    ban_reason TEXT,
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
+);
+
+-- ============================================================================
+-- CHAT PROMPTS TABLE
+-- Many-to-many: Link pre-made prompts to chats
+-- ============================================================================
+CREATE TABLE chat_prompts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    prompt_id UUID NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+    priority INTEGER,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
     
-    UNIQUE(user_id, chat_id)
+    CONSTRAINT uk_chat_prompts_chat_id_prompt_id UNIQUE (chat_id, prompt_id)
 );
 
--- Indexes for performance
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_platform ON users(platform);
-CREATE INDEX idx_chats_owner ON chats(owner_id);
-CREATE INDEX idx_chats_platform ON chats(platform);
-CREATE INDEX idx_chats_active ON chats(is_active);
-CREATE INDEX idx_prompts_category ON prompts(category);
-CREATE INDEX idx_prompts_active ON prompts(is_active);
-CREATE INDEX idx_custom_prompts_user ON custom_prompts(user_id);
-CREATE INDEX idx_chat_prompts_chat ON chat_prompts(chat_id);
-CREATE INDEX idx_user_state_chat ON user_state(chat_id);
-CREATE INDEX idx_user_state_user ON user_state(user_id);
-CREATE INDEX idx_user_state_trusted ON user_state(chat_id, is_trusted);
+-- ============================================================================
+-- CHAT CUSTOM PROMPTS TABLE
+-- Many-to-many: Link custom prompts to chats
+-- ============================================================================
+CREATE TABLE chat_custom_prompts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    custom_prompt_id UUID NOT NULL REFERENCES custom_prompts(id) ON DELETE CASCADE,
+    priority INTEGER,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
+    
+    CONSTRAINT uk_chat_custom_prompts_chat_id_custom_prompt_id UNIQUE (chat_id, custom_prompt_id)
+);
 
--- Insert some default prompts
-INSERT INTO prompts (name, description, prompt_text, category) VALUES
-('crypto_scam', 'Detects cryptocurrency scams and pump-and-dump schemes', 'Analyze this message for cryptocurrency scams, pump-and-dump schemes, fake investment opportunities, or suspicious financial promises. Look for urgency tactics, unrealistic returns, or pressure to invest quickly.', 'scam'),
-('spam_links', 'Identifies spam messages with suspicious links', 'Check if this message contains spam links, phishing attempts, or suspicious URLs. Look for shortened links, suspicious domains, or messages that seem designed to trick users into clicking.', 'spam'),
-('adult_content', 'Filters adult and NSFW content', 'Determine if this message contains adult content, sexual material, or NSFW content that would be inappropriate for a general audience.', 'nsfw'),
-('harassment', 'Detects harassment and toxic behavior', 'Analyze this message for harassment, bullying, hate speech, or toxic behavior directed at individuals or groups.', 'harassment'),
-('commercial_spam', 'Identifies commercial spam and unwanted promotions', 'Check if this message is commercial spam, unwanted advertising, or promotional content that disrupts normal conversation flow.', 'spam');
+-- ============================================================================
+-- RUNTIME STATISTICS TABLE
+-- System metrics tracking (NEW - from senior implementation)
+-- ============================================================================
+CREATE TABLE runtime_statistics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) UNIQUE DEFAULT 'default_stats',
+    
+    messages_checked INTEGER DEFAULT 0,
+    ai_requests_made INTEGER DEFAULT 0,
+    messages_deleted INTEGER DEFAULT 0,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
+);
+
+-- ============================================================================
+-- INDEXES
+-- ============================================================================
+CREATE INDEX idx_users_telegram ON users(telegram_user_id) WHERE telegram_user_id IS NOT NULL;
+CREATE INDEX idx_users_discord ON users(discord_user_id) WHERE discord_user_id IS NOT NULL;
+CREATE INDEX idx_users_active ON users(is_active);
+
+CREATE INDEX idx_chats_user ON chats(user_id);
+CREATE INDEX idx_chats_type ON chats(type);
+CREATE INDEX idx_chats_active ON chats(is_active);
+
+CREATE INDEX idx_prompts_active ON prompts(is_active);
+
+CREATE INDEX idx_custom_prompts_user ON custom_prompts(user_id);
+
+CREATE INDEX idx_user_states_chat_extuser ON user_states(chat_id, external_user_id);
+
+CREATE INDEX idx_chat_prompts_chat ON chat_prompts(chat_id);
+CREATE INDEX idx_chat_custom_prompts_chat ON chat_custom_prompts(chat_id);
+
+-- ============================================================================
+-- TRIGGER FUNCTION FOR updated_at
+-- Auto-updates updated_at column on every UPDATE
+-- ============================================================================
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- TRIGGERS FOR ALL TABLES
+-- ============================================================================
+CREATE TRIGGER trg_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_chats_updated_at
+    BEFORE UPDATE ON chats
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_prompts_updated_at
+    BEFORE UPDATE ON prompts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_custom_prompts_updated_at
+    BEFORE UPDATE ON custom_prompts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_user_states_updated_at
+    BEFORE UPDATE ON user_states
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_chat_prompts_updated_at
+    BEFORE UPDATE ON chat_prompts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_chat_custom_prompts_updated_at
+    BEFORE UPDATE ON chat_custom_prompts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_runtime_statistics_updated_at
+    BEFORE UPDATE ON runtime_statistics
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================================
+-- DEFAULT DATA
+-- ============================================================================
+
+-- Default prompts for spam detection
+INSERT INTO prompts (name, prompt_text) VALUES
+('crypto_scam', 'Analyze this message for cryptocurrency scams, pump-and-dump schemes, fake investment opportunities, or suspicious financial promises. Look for urgency tactics, unrealistic returns, or pressure to invest quickly.'),
+('spam_links', 'Check if this message contains spam links, phishing attempts, or suspicious URLs. Look for shortened links, suspicious domains, or messages designed to trick users into clicking.'),
+('adult_content', 'Determine if this message contains adult content, sexual material, or NSFW content that would be inappropriate for a general audience.'),
+('harassment', 'Analyze this message for harassment, bullying, hate speech, or toxic behavior directed at individuals or groups.'),
+('commercial_spam', 'Check if this message is commercial spam, unwanted advertising, or promotional content that disrupts normal conversation flow.');
+
+-- Default runtime statistics entry
+INSERT INTO runtime_statistics (name) VALUES ('default_stats');

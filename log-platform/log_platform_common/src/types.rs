@@ -37,6 +37,12 @@ pub struct LogEvent {
     pub fields: Option<Value>,
 }
 
+impl LogEvent {
+    pub fn service_name_or_default(&self) -> &str {
+        self.service.as_ref().map(|s| s.name.as_str()).unwrap_or("unknown")
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum IngestPayload {
