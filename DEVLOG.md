@@ -7,6 +7,68 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 10:05 AM - Development Update
+
+**Commit**: `71803888`  
+**Author**: Susbonk  
+**Changes**: feat: integrate Postal mail server for production alerts
+
+## Postal Mail Server Setup
+- Add postal/ directory with separate docker-compose (microservice architecture)
+- Configure MariaDB, web UI (5000), SMTP server (2525), worker services
+- Generate RSA signing key for email signatures
+- Create postal.yml with local domain (postal.localhost)
+- Add start.sh and test-email.sh automation scripts
+
+## Rust Environment Configuration
+- Update env.rs to match existing .env naming conventions:
+  - SMTP_SERVER (was SMTP_HOST)
+  - SMTP_PASSWORD (was SMTP_PASS)
+  - ALERT_EMAIL_FROM/TO (was ALERT_EMAIL, SMTP_FROM)
+  - WARNING_THRESHOLD (was WARN_THRESHOLD)
+- Add smtp_user, smtp_password, alert_email_from, alert_email_to to Cfg struct
+- Filter empty SMTP credentials to return None (not Some(""))
+
+## EmailNotifier Updates
+- Update constructor to accept all parameters explicitly
+- Remove hardcoded env var reads from constructor
+- Update alertd to pass full config from Cfg struct
+
+## Security Improvements
+- Move hardcoded secrets to .env (POSTAL_DB_PASSWORD, POSTAL_RAILS_SECRET)
+- Use ERB templates in postal.yml for secret substitution
+- Replace expect() with unwrap_or_else() in http.rs to prevent panics
+- Add env_file to postal docker-compose services
+
+## Integration Testing
+- Add log-platform/tests/email_integration.rs
+- Automated test for sending alerts through Postal SMTP
+- Unit test for Alert struct creation
+
+## Documentation
+- postal/README.md - Setup and configuration guide
+- postal/IMPLEMENTATION.md - Technical implementation details
+- postal/QUICK_REFERENCE.md - Common commands cheatsheet
+
+## Backend Integration
+- Update backend/docker-compose.yml with env_file and SMTP overrides
+- Connect alertd to susbonk-network for Postal connectivity
+- Update .env with Postal SMTP settings  
+
+**Technical Notes**: Postal integration required careful alignment between .env naming conventions and Rust code. Code review caught WARNING_THRESHOLD vs WARN_THRESHOLD mismatch and empty string credential handling issues.
+
+**Kiro Usage**:
+- **Custom Agent**: Used `backend_doggo` specialized prompt with Rust/OpenSearch/Docker expertise for architecture decisions
+- **MCP Integration**: Used `context7` MCP tool to fetch up-to-date Postal documentation (docker-compose patterns, API endpoints, postal.yml configuration)
+- **Planning**: 5-task implementation plan generated and executed incrementally
+- **Code Review**: Automated standards check identified 2 bugs:
+  - `.env` uses `WARNING_THRESHOLD` but Rust read `WARN_THRESHOLD` → Fixed
+  - Empty SMTP credentials returned `Some("")` instead of `None` → Added `.filter(|s| !s.is_empty())`
+- **Security Audit**: Detected hardcoded secrets in postal.yml, moved to .env with ERB templates
+- **Panic Prevention**: Found `expect()` in http.rs, replaced with `unwrap_or_else()` fallback
+
+---
+
 ### Jan 15, 2026 - 08:20 AM - Development Update
 
 **Commit**: `2c4f1431`  
@@ -341,6 +403,18 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
 - **Challenge**: Maintaining design integrity while switching frameworks
 - **Solution**: Mobile-first approach, TypeScript (we're not complete anarchists)
 - **Kiro Usage**: Used steering docs to enforce consistent patterns
+
+---
+
+### Jan 15, 2026 - 10:06 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+7180388 feat: integrate Postal mail server for production alerts
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
 
 ---
 
