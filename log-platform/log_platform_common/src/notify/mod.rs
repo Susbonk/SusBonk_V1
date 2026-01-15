@@ -69,14 +69,17 @@ impl Notifier for EmailNotifier {
             .header(ContentType::TEXT_PLAIN)
             .body(format!("[{:?}] {}\n\nSource: {}", alert.level, alert.message, alert.source))?;
 
-        let mut mailer_builder = AsyncSmtpTransport::<Tokio1Executor>::relay(&self.smtp_host)?
-            .port(self.smtp_port);
+        let mailer = if let (Some(user), Some(pass)) = (&self.username, &self.password) {
+            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.smtp_host)?
+                .port(self.smtp_port)
+                .credentials(Credentials::new(user.clone(), pass.clone()))
+                .build()
+        } else {
+            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&self.smtp_host)
+                .port(self.smtp_port)
+                .build()
+        };
 
-        if let (Some(user), Some(pass)) = (&self.username, &self.password) {
-            mailer_builder = mailer_builder.credentials(Credentials::new(user.clone(), pass.clone()));
-        }
-
-        let mailer = mailer_builder.build();
         mailer.send(email).await?;
         info!("Email sent to {}: {}", self.to_email, alert.subject);
         Ok(())

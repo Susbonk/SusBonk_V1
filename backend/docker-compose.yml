@@ -75,8 +75,6 @@ services:
       - OPENSEARCH_URL=http://os01:9200
       - INGEST_URL=http://log-ingest:8080
       - RUST_LOG=info
-      - SMTP_SERVER=postal-smtp
-      - SMTP_PORT=2525
     depends_on:
       os01:
         condition: service_healthy

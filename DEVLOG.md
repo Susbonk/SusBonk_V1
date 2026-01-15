@@ -7,6 +7,23 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 10:10 AM - Development Update
+
+**Commit**: `aef05dcb`  
+**Author**: Susbonk  
+**Changes**: security: move Django admin credentials to .env
+
+- Replace hardcoded admin/admin credentials in start.sh with env vars
+- Add DJANGO_ADMIN_USER, DJANGO_ADMIN_EMAIL, DJANGO_ADMIN_PASSWORD to .env
+- Update test script to reference env vars instead of showing credentials
+- Admin service already loads .env via env_file directive  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 10:07 AM - Development Update
 
 **Commit**: `73f639de`  
@@ -395,6 +412,18 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
 2c4f143 refactor: log-platform workspace + common library + enhanced alertd
 56c21c1 refactor: move log-platform to root as separate service
 7c52192 chore: consolidate backend services into backend/ directory
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 10:10 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+aef05dc security: move Django admin credentials to .env
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
