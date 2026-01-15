@@ -47,14 +47,14 @@ pub struct EmailNotifier {
 }
 
 impl EmailNotifier {
-    pub fn new(smtp_host: String, smtp_port: u16, to_email: String) -> Self {
+    pub fn new(smtp_host: String, smtp_port: u16, from_email: String, to_email: String, username: Option<String>, password: Option<String>) -> Self {
         Self {
             smtp_host,
             smtp_port,
-            from_email: crate::env::get_env("SMTP_FROM", "alerts@localhost"),
+            from_email,
             to_email,
-            username: std::env::var("SMTP_USER").ok(),
-            password: std::env::var("SMTP_PASS").ok(),
+            username,
+            password,
         }
     }
 }

@@ -31,15 +31,27 @@ pub fn get_port() -> u16 {
 }
 
 pub fn get_smtp_host() -> String {
-    get_env("SMTP_HOST", "localhost")
+    get_env("SMTP_SERVER", "localhost")
 }
 
 pub fn get_smtp_port() -> u16 {
     env_parse("SMTP_PORT", 587)
 }
 
-pub fn get_alert_email() -> String {
-    get_env("ALERT_EMAIL", "admin@example.com")
+pub fn get_smtp_user() -> Option<String> {
+    env::var("SMTP_USER").ok().filter(|s| !s.is_empty())
+}
+
+pub fn get_smtp_password() -> Option<String> {
+    env::var("SMTP_PASSWORD").ok().filter(|s| !s.is_empty())
+}
+
+pub fn get_alert_email_from() -> String {
+    get_env("ALERT_EMAIL_FROM", "alerts@localhost")
+}
+
+pub fn get_alert_email_to() -> String {
+    get_env("ALERT_EMAIL_TO", "admin@example.com")
 }
 
 #[derive(Debug, Clone)]
@@ -48,7 +60,10 @@ pub struct Cfg {
     pub ingest_url: String,
     pub smtp_host: String,
     pub smtp_port: u16,
-    pub alert_email: String,
+    pub smtp_user: Option<String>,
+    pub smtp_password: Option<String>,
+    pub alert_email_from: String,
+    pub alert_email_to: String,
     pub disk_threshold_gb: f64,
     pub warn_threshold: usize,
     pub error_threshold: usize,
@@ -68,9 +83,12 @@ impl Cfg {
             ingest_url: get_ingest_url(),
             smtp_host: get_smtp_host(),
             smtp_port: get_smtp_port(),
-            alert_email: get_alert_email(),
+            smtp_user: get_smtp_user(),
+            smtp_password: get_smtp_password(),
+            alert_email_from: get_alert_email_from(),
+            alert_email_to: get_alert_email_to(),
             disk_threshold_gb: env_parse("DISK_THRESHOLD_GB", 50.0),
-            warn_threshold: env_parse("WARN_THRESHOLD", 100),
+            warn_threshold: env_parse("WARNING_THRESHOLD", 100),
             error_threshold: env_parse("ERROR_THRESHOLD", 50),
             check_interval_secs: env_parse("CHECK_INTERVAL_SECS", 60),
         }

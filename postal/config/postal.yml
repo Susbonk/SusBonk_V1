@@ -1,0 +1,49 @@
+version: 2
+
+postal:
+  web_hostname: postal.localhost
+  web_protocol: http
+  smtp_hostname: postal.localhost
+
+main_db:
+  host: postal-mariadb
+  username: root
+  password: <%= ENV['POSTAL_DB_PASSWORD'] || 'postal123' %>
+  database: postal
+
+message_db:
+  host: postal-mariadb
+  username: root
+  password: <%= ENV['POSTAL_DB_PASSWORD'] || 'postal123' %>
+  prefix: postal
+
+smtp_server:
+  default_bind_address: "::"
+  default_port: 2525
+
+dns:
+  mx_records:
+    - postal.localhost
+  spf_include: postal.localhost
+  return_path_domain: rp.postal.localhost
+  route_domain: routes.postal.localhost
+  track_domain: track.postal.localhost
+
+smtp:
+  host: 127.0.0.1
+  port: 2525
+  username: 
+  password: 
+  from_name: Postal
+  from_address: postal@postal.localhost
+
+rails:
+  secret_key: <%= ENV['POSTAL_RAILS_SECRET'] %>
+
+logging:
+  enabled: true
+  stdout: true
+
+web_server:
+  default_bind_address: "::"
+  default_port: 5000

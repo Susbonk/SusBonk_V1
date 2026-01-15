@@ -26,7 +26,10 @@ impl AlertEngine {
             .add(Box::new(EmailNotifier::new(
                 cfg.smtp_host.clone(),
                 cfg.smtp_port,
-                cfg.alert_email.clone(),
+                cfg.alert_email_from.clone(),
+                cfg.alert_email_to.clone(),
+                cfg.smtp_user.clone(),
+                cfg.smtp_password.clone(),
             )));
 
         Self {

@@ -7,6 +7,29 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 08:20 AM - Development Update
+
+**Commit**: `2c4f1431`  
+**Author**: Susbonk  
+**Changes**: refactor: log-platform workspace + common library + enhanced alertd
+
+- Convert to Cargo workspace (log_platform_common, ingestd, alertd)
+- Add shared types, env helpers, OpenSearch client, notification system
+- Implement real SMTP via lettre with Alert struct
+- Add check_disk (per-node), check_readonly, configurable thresholds
+- Add healthcheck.sh for platform verification
+- Add Django admin panel for PostgreSQL management
+- Fix Dockerfiles for workspace structure  
+
+**Technical Notes**: Major refactor session - workspace structure required fixing Dockerfiles to copy all crate members. Debugging Docker build failures led to discovering workspace dependency resolution issues.
+
+**Kiro Usage**:
+- **Custom Prompts**: Used `backend_doggo` agent with specialized Rust/OpenSearch/Docker expertise for architecture decisions
+- **Planning**: Multi-phase implementation plan (Workspace Refactor → Common Library → Alertd Enhancement) executed incrementally
+- **Debugging**: Iterative Docker build fixes - Kiro identified missing workspace members in COPY commands, fixed bulk_index return type mismatches, resolved import path changes after refactor
+
+---
+
 ### Jan 13, 2026 - 11:31 AM - Development Update
 
 **Commit**: `56c21c19`  
@@ -284,6 +307,20 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
 **Author**: Susbonk  
 **Commits Being Pushed**:
 55f0c13 docs: update DEVLOG with push entry
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 08:21 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+2c4f143 refactor: log-platform workspace + common library + enhanced alertd
+56c21c1 refactor: move log-platform to root as separate service
+7c52192 chore: consolidate backend services into backend/ directory
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
