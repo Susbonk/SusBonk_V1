@@ -21,9 +21,12 @@ struct AlertEngine {
 
 impl AlertEngine {
     fn new(cfg: Cfg) -> Self {
-        let notifier = MultiNotifier::new()
-            .add(Box::new(LogNotifier))
-            .add(Box::new(EmailNotifier::new(
+        let mut notifier = MultiNotifier::new()
+            .add(Box::new(LogNotifier));
+
+        // Only add email notifier if EMAIL_ENABLED=1
+        if cfg.email_enabled {
+            notifier = notifier.add(Box::new(EmailNotifier::new(
                 cfg.smtp_host.clone(),
                 cfg.smtp_port,
                 cfg.alert_email_from.clone(),
@@ -31,6 +34,7 @@ impl AlertEngine {
                 cfg.smtp_user.clone(),
                 cfg.smtp_password.clone(),
             )));
+        }
 
         Self {
             client: log_platform_common::http::create_client(),
@@ -189,13 +193,12 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting alertd service");
 
     let cfg = Cfg::from_env();
-    info!("Config: disk_threshold={}GB, warn_threshold={}, error_threshold={}, interval={}s",
-          cfg.disk_threshold_gb, cfg.warn_threshold, cfg.error_threshold, cfg.check_interval_secs);
+    info!(
+        "Config: email_enabled={}, disk_threshold={}GB, warn_threshold={}, error_threshold={}, interval={}s",
+        cfg.email_enabled, cfg.disk_threshold_gb, cfg.warn_threshold, cfg.error_threshold, cfg.check_interval_secs
+    );
 
     let engine = Arc::new(AlertEngine::new(cfg.clone()));
-
-    // Example: Log spam detection
-    engine.log_spam_detection("msg_123", 0.95, true).await?;
 
     info!("alertd service running. Press Ctrl+C to stop.");
 

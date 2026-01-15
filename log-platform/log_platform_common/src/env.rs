@@ -26,6 +26,10 @@ pub fn get_ingest_url() -> String {
     get_env("OS_INGEST_URL", "http://localhost:8080")
 }
 
+pub fn get_email_enabled() -> bool {
+    env_bool("EMAIL_ENABLED", false)
+}
+
 pub fn get_port() -> u16 {
     env_parse("PORT", 8080)
 }
@@ -58,6 +62,7 @@ pub fn get_alert_email_to() -> String {
 pub struct Cfg {
     pub opensearch_url: String,
     pub ingest_url: String,
+    pub email_enabled: bool,
     pub smtp_host: String,
     pub smtp_port: u16,
     pub smtp_user: Option<String>,
@@ -81,6 +86,7 @@ impl Cfg {
         Self {
             opensearch_url: get_opensearch_url(),
             ingest_url: get_ingest_url(),
+            email_enabled: get_email_enabled(),
             smtp_host: get_smtp_host(),
             smtp_port: get_smtp_port(),
             smtp_user: get_smtp_user(),

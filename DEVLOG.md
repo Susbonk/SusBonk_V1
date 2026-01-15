@@ -7,6 +7,23 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 11:42 AM - Development Update
+
+**Commit**: `a6f2cd0f`  
+**Author**: Susbonk  
+**Changes**: refactor: standardize env var naming (OS_URL, OS_INGEST_URL)
+
+- Rename OPENSEARCH_URL -> OS_URL
+- Rename INGEST_URL -> OS_INGEST_URL
+- Update all Rust code, Dockerfiles, shell scripts, docker-compose
+- Add OS_URL to .env and .env.example  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 11:36 AM - Development Update
 
 **Commit**: `9aeb9eb2`  
@@ -471,6 +488,18 @@ This reverts commit a5e83148c35c24192bdd17e2eaf738da7d04b05d.
 **Author**: Susbonk  
 **Commits Being Pushed**:
 55ad24d docs: update DEVLOG with Day 2 logging infrastructure work
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 11:42 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+a6f2cd0 refactor: standardize env var naming (OS_URL, OS_INGEST_URL)
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
