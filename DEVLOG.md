@@ -7,6 +7,39 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 11:30 AM - Development Update
+
+**Commit**: `03aa908c`  
+**Author**: Susbonk  
+**Changes**: feat: integrate Brevo SMTP relay for production email alerts
+
+- Configure Brevo (smtp-relay.brevo.com:587) as SMTP provider
+- Update .env with Brevo credentials
+- Fix Postal docker-compose for ARM64 (platform: linux/amd64)
+- Fix postal.yml bind address and hostname for localhost access
+- Remove duplicate POSTGRES variables from .env
+- Tested: email successfully delivered to Outlook inbox  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 15, 2026 - 10:56 AM - Development Update
+
+**Commit**: `3305e099`  
+**Author**: Susbonk  
+**Changes**: Revert "refactor: replace Postal with MailHog for local email testing"
+
+This reverts commit a5e83148c35c24192bdd17e2eaf738da7d04b05d.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 10:43 AM - Development Update
 
 **Commit**: `a5e83148`  
@@ -491,6 +524,19 @@ a5e8314 refactor: replace Postal with MailHog for local email testing
 
 ---
 
+### Jan 15, 2026 - 11:31 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+03aa908 feat: integrate Brevo SMTP relay for production email alerts
+3305e09 Revert "refactor: replace Postal with MailHog for local email testing"
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
 ## Day 1 (Jan 7) - Foundation & Migration [4h]
 
 ### Morning - Design & Immediately Regret
@@ -524,6 +570,19 @@ a5e8314 refactor: replace Postal with MailHog for local email testing
 **Author**: Susbonk  
 **Commits Being Pushed**:
 73f639d docs: update DEVLOG with Kiro debugging prompts and MCP usage
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 11:30 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+03aa908 feat: integrate Brevo SMTP relay for production email alerts
+3305e09 Revert "refactor: replace Postal with MailHog for local email testing"
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
