@@ -7,6 +7,23 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 10:16 AM - Development Update
+
+**Commit**: `07a8e115`  
+**Author**: Susbonk  
+**Changes**: refactor: switch SMTP to Outlook with STARTTLS
+
+- Update .env with Outlook SMTP credentials (port 587)
+- Use starttls_relay() for authenticated SMTP with TLS
+- Remove Postal SMTP overrides from docker-compose
+- Fallback to builder_dangerous for unauthenticated local SMTP  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 10:10 AM - Development Update
 
 **Commit**: `aef05dcb`  
@@ -378,6 +395,18 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
   - Healthchecks and proper service dependencies
   - Init scripts for index templates and retention policies
 - **Kiro Usage**: 100% AI-generated code with extensive back-and-forth to get naming conventions right. Used Kiro for all implementation, debugging Docker builds, and fixing schema inconsistencies.
+
+---
+
+### Jan 15, 2026 - 10:16 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+07a8e11 refactor: switch SMTP to Outlook with STARTTLS
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
 
 ---
 
