@@ -7,6 +7,25 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 10:43 AM - Development Update
+
+**Commit**: `a5e83148`  
+**Author**: Susbonk  
+**Changes**: refactor: replace Postal with MailHog for local email testing
+
+- MailHog is simpler and works on ARM64 (Apple Silicon)
+- SMTP on port 1025, Web UI on port 8025
+- No authentication required for local testing
+- Captures all emails for inspection at http://localhost:8025
+- Update .env with MailHog settings
+- Update test-email-alert.sh for MailHog  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 10:16 AM - Development Update
 
 **Commit**: `07a8e115`  
@@ -453,6 +472,18 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
 **Author**: Susbonk  
 **Commits Being Pushed**:
 aef05dc security: move Django admin credentials to .env
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 10:43 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+a5e8314 refactor: replace Postal with MailHog for local email testing
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 

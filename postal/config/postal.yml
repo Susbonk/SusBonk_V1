@@ -8,17 +8,17 @@ postal:
 main_db:
   host: postal-mariadb
   username: root
-  password: postal123
+  password: <%= ENV['POSTAL_DB_PASSWORD'] || 'postal123' %>
   database: postal
 
 message_db:
   host: postal-mariadb
   username: root
-  password: postal123
+  password: <%= ENV['POSTAL_DB_PASSWORD'] || 'postal123' %>
   prefix: postal
 
 smtp_server:
-  default_bind_address: "0.0.0.0"
+  default_bind_address: "::"
   default_port: 2525
 
 dns:
@@ -45,5 +45,5 @@ logging:
   stdout: true
 
 web_server:
-  default_bind_address: "0.0.0.0"
+  default_bind_address: "::"
   default_port: 5000

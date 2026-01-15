@@ -1,14 +1,98 @@
+version: '3.8'
+
 services:
-  mailhog:
-    image: mailhog/mailhog:latest
-    platform: linux/amd64
-    container_name: susbonk-mailhog
-    ports:
-      - "1025:1025"   # SMTP
-      - "8025:8025"   # Web UI
+  postal-mariadb:
+    image: mariadb:10.11
+    container_name: postal-mariadb
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      MARIADB_DATABASE: postal
+      MARIADB_ROOT_PASSWORD: ${POSTAL_DB_PASSWORD}
+    volumes:
+      - postal-db-data:/var/lib/mysql
     networks:
+      - postal-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postal-web:
+    image: ghcr.io/postalserver/postal:3.3.3
+    container_name: postal-web
+    restart: unless-stopped
+    command: postal web-server
+    ports:
+      - "5000:5000"
+    env_file:
+      - ../.env
+    environment:
+      PORT: 5000
+      WAIT_FOR_TARGETS: postal-mariadb:3306
+      WAIT_FOR_TIMEOUT: 60
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      postal-mariadb:
+        condition: service_healthy
+    networks:
+      - postal-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  postal-smtp:
+    image: ghcr.io/postalserver/postal:3.3.3
+    container_name: postal-smtp
+    restart: unless-stopped
+    command: postal smtp-server
+    ports:
+      - "2525:2525"
+    env_file:
+      - ../.env
+    environment:
+      PORT: 2525
+      WAIT_FOR_TARGETS: postal-mariadb:3306
+      WAIT_FOR_TIMEOUT: 60
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      postal-mariadb:
+        condition: service_healthy
+    networks:
+      - postal-network
       - susbonk-network
 
+  postal-worker:
+    image: ghcr.io/postalserver/postal:3.3.3
+    container_name: postal-worker
+    restart: unless-stopped
+    command: postal worker
+    env_file:
+      - ../.env
+    environment:
+      WAIT_FOR_TARGETS: postal-mariadb:3306
+      WAIT_FOR_TIMEOUT: 60
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      postal-mariadb:
+        condition: service_healthy
+    networks:
+      - postal-network
+
+volumes:
+  postal-db-data:
+
 networks:
+  postal-network:
+    driver: bridge
   susbonk-network:
     external: true
