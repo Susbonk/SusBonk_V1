@@ -7,6 +7,43 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - The Postal Humiliation Arc
+
+**The Plan**: Be a smartass and self-host Postal mail server. No freemium limits. Full control. DevOps god energy.
+
+**The Reality**: Spent hours configuring Postal, fixing ARM64 compatibility, debugging 403 errors, setting up SMTP credentials... only to have my first test email immediately rejected by Outlook because my residential IP is on Spamhaus blacklist. *Chef's kiss*.
+
+**The Pivot**: Crawled back to Brevo's freemium tier like everyone else. 300 emails/day free. Works instantly. Email delivered to inbox in seconds. Pride: shattered.
+
+**The Cherry on Top**: In my infinite wisdom, I committed `.env` with all my secrets to git. Brevo SMTP key, Telegram bot token, database passwords - the whole buffet. GitHub's push protection caught it and refused the push. Had to have AI run `git filter-branch` to scrub the entire history clean and force push. 
+
+**Lessons Learned**:
+1. Self-hosted email in 2026 is a mass delusion
+2. `.gitignore` should exist BEFORE you start committing
+3. AI is now my designated cleanup crew for self-inflicted disasters
+
+**Time Wasted**: ~2 hours of "I can do this myself" energy
+
+---
+
+### Jan 15, 2026 - 11:34 AM - Development Update
+
+**Commit**: `4a6748b3`  
+**Author**: Susbonk  
+**Changes**: security: remove secrets from repo, add .gitignore
+
+- Remove .env from git history (contained SMTP keys, tokens)
+- Add .gitignore to exclude .env files
+- Add .env.example with placeholder values
+- Move hardcoded Postal secrets to env vars in postal.yml
+- Use ${POSTAL_DB_PASSWORD} in docker-compose.yml  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 11:30 AM - Development Update
 
 **Commit**: `03aa908c`  
@@ -583,6 +620,19 @@ a5e8314 refactor: replace Postal with MailHog for local email testing
 **Commits Being Pushed**:
 03aa908 feat: integrate Brevo SMTP relay for production email alerts
 3305e09 Revert "refactor: replace Postal with MailHog for local email testing"
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 11:34 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+4a6748b security: remove secrets from repo, add .gitignore
+b873286 Revert "refactor: replace Postal with MailHog for local email testing"
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
