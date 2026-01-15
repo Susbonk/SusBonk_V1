@@ -19,7 +19,7 @@ WORKDIR /app
 COPY --from=builder /app/target/release/ingestd .
 
 ENV RUST_LOG=info
-ENV OPENSEARCH_URL=http://os01:9200
+ENV OS_URL=http://os01:9200
 ENV PORT=8080
 
 EXPOSE 8080

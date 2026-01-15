@@ -45,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting alertd service");
 
     // Initialize OpenSearch logger
-    let opensearch_url = std::env::var("OPENSEARCH_URL")
+    let opensearch_url = std::env::var("OS_URL")
         .unwrap_or_else(|_| "http://localhost:9200".to_string());
     let index_prefix = std::env::var("INDEX_PREFIX")
         .unwrap_or_else(|_| "susbonk".to_string());

@@ -7,8 +7,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-OPENSEARCH_URL="${OPENSEARCH_URL:-http://localhost:9200}"
-INGEST_URL="${INGEST_URL:-http://localhost:8080}"
+OS_URL="${OS_URL:-http://localhost:9200}"
+OS_INGEST_URL="${OS_INGEST_URL:-http://localhost:8080}"
 DASHBOARDS_URL="${DASHBOARDS_URL:-http://localhost:5601}"
 
 pass() { echo -e "${GREEN}✓${NC} $1"; }
@@ -25,7 +25,7 @@ echo ""
 # 1. OpenSearch Cluster Health
 echo "1. OpenSearch Cluster"
 echo "───────────────────────────────────────────────────────────"
-if STATUS=$(curl -sf "$OPENSEARCH_URL/_cluster/health" 2>/dev/null); then
+if STATUS=$(curl -sf "$OS_URL/_cluster/health" 2>/dev/null); then
     CLUSTER_STATUS=$(echo "$STATUS" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
     NODES=$(echo "$STATUS" | grep -o '"number_of_nodes":[0-9]*' | cut -d':' -f2)
     if [ "$CLUSTER_STATUS" = "green" ]; then
@@ -36,14 +36,14 @@ if STATUS=$(curl -sf "$OPENSEARCH_URL/_cluster/health" 2>/dev/null); then
         fail "Cluster status: $CLUSTER_STATUS"
     fi
 else
-    fail "OpenSearch not reachable at $OPENSEARCH_URL"
+    fail "OpenSearch not reachable at $OS_URL"
 fi
 echo ""
 
 # 2. Index Template
 echo "2. Index Template"
 echo "───────────────────────────────────────────────────────────"
-if curl -sf "$OPENSEARCH_URL/_index_template/logs-template" >/dev/null 2>&1; then
+if curl -sf "$OS_URL/_index_template/logs-template" >/dev/null 2>&1; then
     pass "logs-template exists"
 else
     fail "logs-template missing"
@@ -53,7 +53,7 @@ echo ""
 # 3. ISM Policy
 echo "3. ISM Retention Policy"
 echo "───────────────────────────────────────────────────────────"
-if curl -sf "$OPENSEARCH_URL/_plugins/_ism/policies/logs-retention" >/dev/null 2>&1; then
+if curl -sf "$OS_URL/_plugins/_ism/policies/logs-retention" >/dev/null 2>&1; then
     pass "logs-retention policy exists"
 else
     warn "logs-retention policy missing (optional)"
@@ -63,10 +63,10 @@ echo ""
 # 4. Ingestd Service
 echo "4. Ingestd Service"
 echo "───────────────────────────────────────────────────────────"
-if HEALTH=$(curl -sf "$INGEST_URL/health" 2>/dev/null); then
+if HEALTH=$(curl -sf "$OS_INGEST_URL/health" 2>/dev/null); then
     pass "Ingestd healthy: $HEALTH"
 else
-    fail "Ingestd not reachable at $INGEST_URL"
+    fail "Ingestd not reachable at $OS_INGEST_URL"
 fi
 echo ""
 
@@ -74,7 +74,7 @@ echo ""
 echo "5. Ingestion Test"
 echo "───────────────────────────────────────────────────────────"
 TEST_MSG="healthcheck-$(date +%s)"
-if RESULT=$(curl -sf -X POST "$INGEST_URL/ingest" \
+if RESULT=$(curl -sf -X POST "$OS_INGEST_URL/ingest" \
     -H "Content-Type: application/json" \
     -d "{\"service\":{\"name\":\"healthcheck\"},\"log\":{\"level\":\"info\"},\"message\":\"$TEST_MSG\"}" 2>/dev/null); then
     INDEXED=$(echo "$RESULT" | grep -o '"indexed":[0-9]*' | cut -d':' -f2)
@@ -92,7 +92,7 @@ echo ""
 echo "6. Query Test"
 echo "───────────────────────────────────────────────────────────"
 sleep 1  # Wait for indexing
-if COUNT=$(curl -sf "$OPENSEARCH_URL/logs-*/_count" 2>/dev/null | grep -o '"count":[0-9]*' | cut -d':' -f2); then
+if COUNT=$(curl -sf "$OS_URL/logs-*/_count" 2>/dev/null | grep -o '"count":[0-9]*' | cut -d':' -f2); then
     if [ "$COUNT" -gt 0 ]; then
         pass "Found $COUNT documents in logs-* indices"
     else
@@ -106,7 +106,7 @@ echo ""
 # 7. Disk Usage
 echo "7. Disk Usage (per node)"
 echo "───────────────────────────────────────────────────────────"
-if STATS=$(curl -sf "$OPENSEARCH_URL/_nodes/stats/fs" 2>/dev/null); then
+if STATS=$(curl -sf "$OS_URL/_nodes/stats/fs" 2>/dev/null); then
     # Parse with basic tools
     TOTAL=$(echo "$STATS" | grep -o '"total_in_bytes":[0-9]*' | head -1 | cut -d':' -f2)
     FREE=$(echo "$STATS" | grep -o '"free_in_bytes":[0-9]*' | head -1 | cut -d':' -f2)
@@ -131,7 +131,7 @@ echo ""
 # 8. Recent Indices
 echo "8. Log Indices"
 echo "───────────────────────────────────────────────────────────"
-if INDICES=$(curl -sf "$OPENSEARCH_URL/_cat/indices/logs-*?h=index,docs.count,store.size&s=index:desc" 2>/dev/null); then
+if INDICES=$(curl -sf "$OS_URL/_cat/indices/logs-*?h=index,docs.count,store.size&s=index:desc" 2>/dev/null); then
     if [ -n "$INDICES" ]; then
         echo "$INDICES" | head -5
         TOTAL_INDICES=$(echo "$INDICES" | wc -l | tr -d ' ')

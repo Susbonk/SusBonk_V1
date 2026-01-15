@@ -37,7 +37,7 @@ services:
     image: curlimages/curl:latest
     container_name: susbonk-opensearch-init
     environment:
-      - OPENSEARCH_URL=http://os01:9200
+      - OS_URL=http://os01:9200
     volumes:
       - ./init:/init
     command: sh /init/init.sh
@@ -72,8 +72,8 @@ services:
     env_file:
       - ../.env
     environment:
-      - OPENSEARCH_URL=http://os01:9200
-      - INGEST_URL=http://log-ingest:8080
+      - OS_URL=http://os01:9200
+      - OS_INGEST_URL=http://log-ingest:8080
       - RUST_LOG=info
     depends_on:
       os01:
@@ -90,7 +90,7 @@ services:
       dockerfile: Dockerfile.ingestd
     container_name: susbonk-ingestd
     environment:
-      - OPENSEARCH_URL=http://os01:9200
+      - OS_URL=http://os01:9200
       - PORT=8080
       - RUST_LOG=info
     ports:

@@ -88,7 +88,7 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting ingestd service");
 
-    let opensearch_url = std::env::var("OPENSEARCH_URL")
+    let opensearch_url = std::env::var("OS_URL")
         .unwrap_or_else(|_| "http://localhost:9200".to_string());
     let port = std::env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())

@@ -19,11 +19,11 @@ pub fn env_bool(key: &str, default: bool) -> bool {
 }
 
 pub fn get_opensearch_url() -> String {
-    get_env("OPENSEARCH_URL", "http://localhost:9200")
+    get_env("OS_URL", "http://localhost:9200")
 }
 
 pub fn get_ingest_url() -> String {
-    get_env("INGEST_URL", "http://localhost:8080")
+    get_env("OS_INGEST_URL", "http://localhost:8080")
 }
 
 pub fn get_port() -> u16 {

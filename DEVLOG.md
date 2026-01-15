@@ -7,6 +7,18 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 11:36 AM - Development Update
+
+**Commit**: `9aeb9eb2`  
+**Author**: Susbonk  
+**Changes**: docs: add the Postal humiliation arc to devlog  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - The Postal Humiliation Arc
 
 **The Plan**: Be a smartass and self-host Postal mail server. No freemium limits. Full control. DevOps god energy.
@@ -567,6 +579,18 @@ a5e8314 refactor: replace Postal with MailHog for local email testing
 **Commits Being Pushed**:
 03aa908 feat: integrate Brevo SMTP relay for production email alerts
 3305e09 Revert "refactor: replace Postal with MailHog for local email testing"
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 11:37 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+9aeb9eb docs: add the Postal humiliation arc to devlog
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
