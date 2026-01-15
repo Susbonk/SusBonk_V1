@@ -12,11 +12,15 @@ python manage.py migrate --fake-initial
 
 echo "Creating superuser if not exists..."
 python manage.py shell -c "
+import os
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin')
-    print('Superuser created: admin/admin')
+username = os.getenv('DJANGO_ADMIN_USER', 'admin')
+email = os.getenv('DJANGO_ADMIN_EMAIL', 'admin@example.com')
+password = os.getenv('DJANGO_ADMIN_PASSWORD', 'changeme')
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print(f'Superuser created: {username}')
 else:
     print('Superuser already exists')
 " || true

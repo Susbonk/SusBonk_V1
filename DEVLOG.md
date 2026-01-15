@@ -7,6 +7,18 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 10:07 AM - Development Update
+
+**Commit**: `73f639de`  
+**Author**: Susbonk  
+**Changes**: docs: update DEVLOG with Kiro debugging prompts and MCP usage  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 10:05 AM - Development Update
 
 **Commit**: `71803888`  
@@ -411,6 +423,18 @@ Building a scalable spam detection platform for Telegram (and future Discord sup
 **Author**: Susbonk  
 **Commits Being Pushed**:
 7180388 feat: integrate Postal mail server for production alerts
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 10:08 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+73f639d docs: update DEVLOG with Kiro debugging prompts and MCP usage
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
