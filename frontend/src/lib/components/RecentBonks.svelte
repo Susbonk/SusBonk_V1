@@ -23,7 +23,10 @@
 </script>
 
 <div class="card">
-  <h3 class="mb-4 font-extrabold">Recent Bonks</h3>
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="font-extrabold">Recent Bonks</h3>
+    <span class="text-xs bg-yellow-200 px-2 py-1 border-2 border-black font-bold">Sample Data - Real logs coming soon</span>
+  </div>
 
   <div class="space-y-3">
     {#each logs as log (log.id)}

@@ -176,6 +176,28 @@ services:
       - db-net
     restart: unless-stopped
 
+  api-backend:
+    container_name: susbonk-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      pg-database:
+        condition: service_healthy
+    networks:
+      - db-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   opensearch-data:
   postgres-data:

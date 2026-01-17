@@ -1,29 +1,57 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Plus, Trash2, X } from 'lucide-svelte';
+  import { promptsState } from '../stores/index.js';
+  import { listCustomPrompts, createPrompt, deletePrompt } from '../api/prompts.js';
+  import type { CustomPrompt } from '../types/api.js';
 
-  interface CustomBlock {
-    id: string;
-    name: string;
-    instructions: string;
-  }
-
-  let blocks = $state<CustomBlock[]>([
-    { id: "1", name: "Competitor Mentions", instructions: "Block any mention of 'SafeMoon' or 'DogeCoin'. Only allow Bitcoin and Ethereum discussions." },
-    { id: "2", name: "No FUD", instructions: "Bonk messages that contain 'rug pull', 'scam', or 'honey pot' without evidence." }
-  ]);
   let isModalOpen = $state(false);
   let newName = $state("");
   let newInstructions = $state("");
+  let isLoading = $state(false);
+  let isSaving = $state(false);
 
-  function saveBlock() {
-    if (!newName || !newInstructions) return;
-    blocks = [...blocks, { id: Date.now().toString(), name: newName, instructions: newInstructions }];
-    closeModal();
+  onMount(async () => {
+    await loadPrompts();
+  });
+
+  async function loadPrompts() {
+    isLoading = true;
+    try {
+      const prompts = await listCustomPrompts();
+      promptsState.update(state => ({ ...state, customPrompts: prompts }));
+    } catch (err) {
+      console.error('Failed to load custom prompts:', err);
+    } finally {
+      isLoading = false;
+    }
   }
 
-  function deleteBlock(id: string, name: string) {
-    if (confirm(`Delete "${name}"? This cannot be undone.`)) {
-      blocks = blocks.filter(b => b.id !== id);
+  async function saveBlock() {
+    if (!newName || !newInstructions) return;
+    
+    isSaving = true;
+    try {
+      await createPrompt({ name: newName, prompt_text: newInstructions });
+      await loadPrompts();
+      closeModal();
+    } catch (err) {
+      console.error('Failed to create prompt:', err);
+      alert('Failed to create custom rule');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function deleteBlock(prompt: CustomPrompt) {
+    if (confirm(`Delete "${prompt.name}"? This cannot be undone.`)) {
+      try {
+        await deletePrompt(prompt.id);
+        await loadPrompts();
+      } catch (err) {
+        console.error('Failed to delete prompt:', err);
+        alert('Failed to delete custom rule');
+      }
     }
   }
 
@@ -44,18 +72,20 @@
   </div>
 
   <div class="space-y-3">
-    {#if blocks.length === 0}
+    {#if isLoading}
+      <div class="text-center py-8 text-gray-500">Loading...</div>
+    {:else if $promptsState.customPrompts.length === 0}
       <div class="text-center py-8 text-gray-500 italic border-2 border-dashed border-gray-300">No custom rules yet.</div>
     {:else}
-      {#each blocks as block (block.id)}
+      {#each $promptsState.customPrompts as prompt (prompt.id)}
         <div class="border-3 border-black p-3 bg-gray-50 hover:bg-[#fff9e6] transition-colors">
           <div class="flex justify-between items-start mb-2">
-            <h4 class="font-bold text-lg leading-tight">{block.name}</h4>
-            <button onclick={() => deleteBlock(block.id, block.name)} class="text-gray-400 hover:text-red-600 transition-colors">
+            <h4 class="font-bold text-lg leading-tight">{prompt.name}</h4>
+            <button onclick={() => deleteBlock(prompt)} class="text-gray-400 hover:text-red-600 transition-colors">
               <Trash2 class="w-5 h-5" />
             </button>
           </div>
-          <p class="text-sm text-gray-600 font-medium line-clamp-2">"{block.instructions}"</p>
+          <p class="text-sm text-gray-600 font-medium line-clamp-2">"{prompt.prompt_text}"</p>
         </div>
       {/each}
     {/if}
@@ -83,7 +113,9 @@
         </div>
       </div>
       
-      <button onclick={saveBlock} class="btn btn-primary w-full py-3 text-lg font-black">SAVE RULE</button>
+      <button onclick={saveBlock} class="btn btn-primary w-full py-3 text-lg font-black" disabled={isSaving}>
+        {isSaving ? 'SAVING...' : 'SAVE RULE'}
+      </button>
     </div>
   </div>
 {/if}

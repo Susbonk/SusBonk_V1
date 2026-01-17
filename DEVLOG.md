@@ -7,6 +7,24 @@
 ## Overview
 Building a scalable spam detection platform for Telegram (and future Discord support). Started mobile-first, evolved into a high-performance multi-service architecture with unified logging.
 
+### Jan 15, 2026 - 11:55 AM - Development Update
+
+**Commit**: `a1d7fb1c`  
+**Author**: Susbonk  
+**Changes**: refactor: remove duplicate services, switch to Brevo SMTP
+
+- Remove backend/alertd and backend/ingestd (duplicates of log-platform/)
+- Remove postal/ (switched to Brevo SMTP relay)
+- Add EMAIL_ENABLED config to conditionally enable email alerts
+- Update email integration test defaults for Brevo
+- Remove test spam log call from alertd startup  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 15, 2026 - 11:42 AM - Development Update
 
 **Commit**: `a6f2cd0f`  
@@ -686,6 +704,18 @@ a5e8314 refactor: replace Postal with MailHog for local email testing
 **Commits Being Pushed**:
 4a6748b security: remove secrets from repo, add .gitignore
 b873286 Revert "refactor: replace Postal with MailHog for local email testing"
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 15, 2026 - 11:56 AM - Push to master
+
+**Author**: Susbonk  
+**Commits Being Pushed**:
+a1d7fb1 refactor: remove duplicate services, switch to Brevo SMTP
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 

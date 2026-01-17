@@ -5,7 +5,7 @@
   import WhitelistSection from './WhitelistSection.svelte';
   import RecentBonks from './RecentBonks.svelte';
   import CustomBlockSection from './CustomBlockSection.svelte';
-  import { appState, togglePlayPause, changeGroup } from '../stores.js';
+  import { chatsState, promptsState } from '../stores/index.js';
   import type { TabType } from '../types';
 
   interface Props {
@@ -19,17 +19,21 @@
   let builtInExpanded = $state(true);
   let customExpanded = $state(true);
 
-  const customBlocks = [
-    { id: "1", name: "Competitor Mentions", level: "Normal" },
-    { id: "2", name: "No FUD", level: "Bonkers" }
-  ];
+  const customBlocks: any[] = [];
 
   function handleGroupChange(value: string) {
     if (value === "add_new") {
       onAddGroup();
     } else {
-      changeGroup(value);
+      chatsState.update(state => ({ 
+        ...state, 
+        activeChat: state.chats.find(chat => chat.title === value) || null 
+      }));
     }
+  }
+
+  function togglePlayPause() {
+    // TODO: Implement with API integration
   }
 </script>
 
@@ -39,11 +43,11 @@
     {#if activeTab === 'dashboard'}
       <div class="p-4 space-y-4">
         <DashboardHeader 
-          bonkCount={$appState.bonkCount}
-          isPlaying={$appState.isPlaying}
+          bonkCount={$chatsState.activeChat?.spam_detected || 0}
+          isPlaying={false}
           onTogglePlay={togglePlayPause}
-          groups={$appState.groups}
-          activeGroup={$appState.activeGroup}
+          groups={$chatsState.chats.map(chat => chat.title)}
+          activeGroup={$chatsState.activeChat?.title || ''}
           onGroupChange={handleGroupChange}
         />
 
@@ -78,19 +82,19 @@
               onclick={() => customExpanded = !customExpanded}
               class="w-full flex items-center justify-between py-2 px-3 bg-[#FF8A00]/20 border-3 border-black mb-2 font-bold text-sm"
             >
-              <span>Custom Rules ({customBlocks.length})</span>
+              <span>Custom Rules ({$promptsState.customPrompts.length})</span>
               {#if customExpanded}<ChevronUp class="w-5 h-5" />{:else}<ChevronDown class="w-5 h-5" />{/if}
             </button>
             
             {#if customExpanded}
               <div class="space-y-3">
-                {#if customBlocks.length === 0}
+                {#if $promptsState.customPrompts.length === 0}
                   <div class="text-center py-6 text-gray-500 italic border-2 border-dashed border-gray-300">
                     No custom rules. Add them in Settings.
                   </div>
                 {:else}
-                  {#each customBlocks as block (block.id)}
-                    <ModerationToggle icon={Sparkles} category={block.name} initialLevel={block.level} />
+                  {#each $promptsState.customPrompts as prompt (prompt.id)}
+                    <ModerationToggle icon={Sparkles} category={prompt.title} initialLevel="Normal" />
                   {/each}
                 {/if}
               </div>
@@ -102,14 +106,14 @@
 
     {#if activeTab === 'logs'}
       <div class="p-4 space-y-4">
-        <h2 class="text-2xl font-black">Logs for {$appState.activeGroup}</h2>
+        <h2 class="text-2xl font-black">Logs for {$chatsState.activeChat?.title || 'No Chat Selected'}</h2>
         <RecentBonks />
       </div>
     {/if}
 
     {#if activeTab === 'settings'}
       <div class="p-4 space-y-4">
-        <h2 class="text-2xl font-black">Settings for {$appState.activeGroup}</h2>
+        <h2 class="text-2xl font-black">Settings for {$chatsState.activeChat?.title || 'No Chat Selected'}</h2>
         <WhitelistSection />
         <CustomBlockSection />
       </div>

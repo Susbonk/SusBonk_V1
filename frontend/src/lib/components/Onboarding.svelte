@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Play } from 'lucide-svelte';
+  import { Play, AlertCircle } from 'lucide-svelte';
 
   interface Props {
     onSummon: () => void;
@@ -41,9 +41,22 @@
     </div>
   </div>
 
-  <div class="mt-auto pb-8">
-    <button onclick={onSummon} class="w-full btn btn-secondary py-5 px-6 text-xl font-black -rotate-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-4">
-      SUMMON SUSBONK 🔨
+  <div class="mt-auto pb-8 space-y-4">
+    <!-- WIP Notice -->
+    <div class="flex items-center gap-2 p-3 bg-yellow-100 border-3 border-yellow-500 text-yellow-800">
+      <AlertCircle class="w-5 h-5 flex-shrink-0" />
+      <span class="text-sm font-bold">Bot integration coming soon! Use demo mode to explore the dashboard.</span>
+    </div>
+
+    <!-- Main Button (WIP) -->
+    <button disabled class="w-full btn btn-secondary py-5 px-6 text-xl font-black -rotate-2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-4 opacity-50 cursor-not-allowed">
+      SUMMON SUSBONK 🔨 (WIP)
+    </button>
+
+    <!-- Skip Button -->
+    <button onclick={onSummon} class="w-full btn btn-primary py-3 px-6 text-lg font-black rotate-1">
+      SKIP FOR DEMO →
     </button>
   </div>
 </div>
+

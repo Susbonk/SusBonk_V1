@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Hammer, Play, Pause, ChevronDown, Plus } from 'lucide-svelte';
+  import { Hammer, Play, Pause, ChevronDown, Plus, LogOut } from 'lucide-svelte';
+  import { authState } from '../stores/index.js';
 
   interface Props {
     bonkCount: number;
@@ -12,29 +13,60 @@
 
   let { bonkCount, isPlaying, onTogglePlay, groups, activeGroup, onGroupChange }: Props = $props();
   let isDropdownOpen = $state(false);
+
+  function handleLogout() {
+    if (confirm('Logout from SusBonk?')) {
+      authState.update(state => ({
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false
+      }));
+    }
+  }
 </script>
 
 <div class="space-y-4">
+  <!-- User Info & Logout -->
+  <div class="flex items-center justify-between p-2 bg-gray-50 border-2 border-black">
+    <div class="text-sm font-bold text-gray-600">
+      {#if $authState.user}
+        {$authState.user.email}
+      {/if}
+    </div>
+    <button
+      onclick={handleLogout}
+      class="flex items-center gap-2 px-3 py-1 border-2 border-black bg-white hover:bg-gray-100 text-xs font-bold"
+    >
+      <LogOut class="w-3 h-3" />
+      Logout
+    </button>
+  </div>
+
   <!-- Group Selection -->
   <div class="w-full relative">
     <button
       onclick={() => isDropdownOpen = !isDropdownOpen}
       class="w-full bg-white border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-12 px-4 flex items-center justify-between font-bold"
     >
-      <span>{activeGroup}</span>
+      <span>{activeGroup || 'Add your first group'}</span>
       <ChevronDown class="w-5 h-5" />
     </button>
     
     {#if isDropdownOpen}
       <div class="absolute top-full left-0 right-0 mt-1 bg-white border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50 font-semibold">
-        {#each groups as group}
-          <button
-            onclick={() => { onGroupChange(group); isDropdownOpen = false; }}
-            class="w-full px-4 py-3 text-left hover:bg-[#CCFF00] transition-colors"
-          >
-            {group}
-          </button>
-        {/each}
+        {#if groups.length === 0}
+          <div class="px-4 py-3 text-gray-500 italic">No groups yet</div>
+        {:else}
+          {#each groups as group}
+            <button
+              onclick={() => { onGroupChange(group); isDropdownOpen = false; }}
+              class="w-full px-4 py-3 text-left hover:bg-[#CCFF00] transition-colors"
+            >
+              {group}
+            </button>
+          {/each}
+        {/if}
         <button
           onclick={() => { onGroupChange('add_new'); isDropdownOpen = false; }}
           class="w-full px-4 py-3 text-left hover:bg-[#FF8A00] transition-colors border-t-2 border-black flex items-center gap-2 font-bold"
