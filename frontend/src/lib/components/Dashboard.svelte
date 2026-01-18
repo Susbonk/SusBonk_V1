@@ -18,6 +18,8 @@
   import RecentBonks from './RecentBonks.svelte';
   import CustomBlockSection from './CustomBlockSection.svelte';
   import MembersPanel from './MembersPanel.svelte';
+  import ChatSettings from './ChatSettings.svelte';
+  import TelegramConnection from './TelegramConnection.svelte';
   import { chatsState, promptsState } from '../stores/index.js';
   import {
     listSystemPrompts,
@@ -43,11 +45,13 @@
   let systemPrompts = $state<SystemPrompt[]>([]);
   let isLoadingPrompts = $state(false);
 
-  // Settings sub-tab state (now just Chat and Members)
+  // Settings sub-tab state (now includes Chat Settings, Custom Rules, Members, and Telegram)
   let settingsTab = $state<SettingsTabType>('chat');
   const settingsTabs: { id: SettingsTabType; label: string }[] = [
     { id: 'chat', label: 'Chat' },
+    { id: 'custom', label: 'Custom Rules' },
     { id: 'members', label: 'Members' },
+    { id: 'telegram', label: 'Telegram' },
   ];
 
   // Modal state for creating/editing custom prompts
@@ -300,11 +304,25 @@
         <!-- Settings Content -->
         <div class="mt-4">
           {#if settingsTab === 'chat'}
+            {#if $chatsState.activeChat}
+              <ChatSettings chat={$chatsState.activeChat} />
+            {:else}
+              <div class="text-center py-8 text-gray-500 italic border-2 border-dashed border-gray-300">
+                Select a chat to configure settings
+              </div>
+            {/if}
+          {/if}
+
+          {#if settingsTab === 'custom'}
             <CustomBlockSection />
           {/if}
 
           {#if settingsTab === 'members'}
             <MembersPanel />
+          {/if}
+
+          {#if settingsTab === 'telegram'}
+            <TelegramConnection />
           {/if}
         </div>
       </div>
@@ -321,7 +339,7 @@
     role="button"
     tabindex="0"
   >
-    <div class="modal-content" onclick={(e) => e.stopPropagation()} role="dialog" tabindex="-1">
+    <div class="modal-content" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.key === 'Enter' && e.stopPropagation()} role="dialog" tabindex="-1">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-extrabold">{editingPrompt ? 'Edit' : 'New'} Custom Rule</h2>
         <button onclick={closeModal} class="p-1 hover:bg-gray-100"><X class="w-6 h-6" /></button>

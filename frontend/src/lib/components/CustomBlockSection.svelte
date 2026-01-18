@@ -2,10 +2,12 @@
   import { onMount } from 'svelte';
   import { Plus, Trash2, X } from 'lucide-svelte';
   import { promptsState } from '../stores/index.js';
-  import { listCustomPrompts, createPrompt, deletePrompt } from '../api/prompts.js';
+  import { listCustomPrompts, createPrompt, deletePrompt, updatePrompt } from '../api/prompts.js';
   import type { CustomPrompt } from '../types/api.js';
 
   let isModalOpen = $state(false);
+  let isEditMode = $state(false);
+  let editingPrompt = $state<CustomPrompt | null>(null);
   let newName = $state('');
   let newInstructions = $state('');
   let isLoading = $state(false);
@@ -32,15 +34,27 @@
 
     isSaving = true;
     try {
-      await createPrompt({ title: newName, text: newInstructions });
+      if (isEditMode && editingPrompt) {
+        await updatePrompt(editingPrompt.id, { title: newName, text: newInstructions });
+      } else {
+        await createPrompt({ title: newName, text: newInstructions });
+      }
       await loadPrompts();
       closeModal();
     } catch (err) {
-      console.error('Failed to create prompt:', err);
-      alert('Failed to create custom rule');
+      console.error('Failed to save prompt:', err);
+      alert(`Failed to ${isEditMode ? 'update' : 'create'} custom rule`);
     } finally {
       isSaving = false;
     }
+  }
+
+  function editBlock(prompt: CustomPrompt) {
+    editingPrompt = prompt;
+    newName = prompt.title;
+    newInstructions = prompt.text;
+    isEditMode = true;
+    isModalOpen = true;
   }
 
   async function deleteBlock(prompt: CustomPrompt) {
@@ -57,6 +71,8 @@
 
   function closeModal() {
     isModalOpen = false;
+    isEditMode = false;
+    editingPrompt = null;
     newName = '';
     newInstructions = '';
   }
@@ -86,12 +102,24 @@
         <div class="border-3 border-black p-3 bg-gray-50 hover:bg-[#fff9e6] transition-colors">
           <div class="flex justify-between items-start mb-2">
             <h4 class="font-bold text-lg leading-tight">{prompt.title}</h4>
-            <button
-              onclick={() => deleteBlock(prompt)}
-              class="text-gray-400 hover:text-red-600 transition-colors"
-            >
-              <Trash2 class="w-5 h-5" />
-            </button>
+            <div class="flex gap-2">
+              <button
+                onclick={() => editBlock(prompt)}
+                class="text-gray-400 hover:text-blue-600 transition-colors"
+                title="Edit"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+              <button
+                onclick={() => deleteBlock(prompt)}
+                class="text-gray-400 hover:text-red-600 transition-colors"
+                title="Delete"
+              >
+                <Trash2 class="w-5 h-5" />
+              </button>
+            </div>
           </div>
           <p class="text-sm text-gray-600 font-medium line-clamp-2">"{prompt.text}"</p>
         </div>
@@ -109,9 +137,9 @@
     role="button"
     tabindex="0"
   >
-    <div class="modal-content" onclick={(e) => e.stopPropagation()} role="dialog" tabindex="-1">
+    <div class="modal-content" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.key === 'Enter' && e.stopPropagation()} role="dialog" tabindex="-1">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-extrabold">New Custom Block</h2>
+        <h2 class="text-2xl font-extrabold">{isEditMode ? 'Edit' : 'New'} Custom Block</h2>
         <button onclick={closeModal} class="p-1 hover:bg-gray-100"><X class="w-6 h-6" /></button>
       </div>
       <p class="text-gray-600 mb-4">Define a new rule for SusBonk using natural language.</p>
