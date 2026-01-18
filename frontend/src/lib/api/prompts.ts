@@ -1,27 +1,34 @@
 import { api } from './client.js';
-import type { CustomPrompt } from '../types/api.js';
+import type { CustomPrompt, SystemPrompt } from '../types/api.js';
+
+// Senior backend response structures
+interface SystemPromptListResponse {
+  prompts: SystemPrompt[];
+}
 
 interface CustomPromptListResponse {
-  items: CustomPrompt[];
-  total: number;
-  page: number;
-  page_size: number;
+  prompts: CustomPrompt[];
 }
 
 interface CustomPromptCreateRequest {
-  name: string;
-  prompt_text: string;
+  title: string;
+  text: string;
 }
 
 interface CustomPromptUpdateRequest {
-  name?: string;
-  prompt_text?: string;
+  title?: string;
+  text?: string;
   is_active?: boolean;
+}
+
+export async function listSystemPrompts(): Promise<SystemPrompt[]> {
+  const response = await api.get<SystemPromptListResponse>('/prompts');
+  return response.prompts;
 }
 
 export async function listCustomPrompts(): Promise<CustomPrompt[]> {
   const response = await api.get<CustomPromptListResponse>('/prompts/custom');
-  return response.items;
+  return response.prompts;
 }
 
 export async function createPrompt(data: CustomPromptCreateRequest): Promise<CustomPrompt> {

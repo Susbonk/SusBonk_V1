@@ -2,12 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database.helper import get_db
 from database.models import User
-from database.schemas.auth import UserRegister, UserLogin, Token, UserResponse
+from database.schemas.auth import UserRegister, UserLogin, Token, UserResponse, TelegramConnectResponse
 from api.security import hash_password, verify_password, create_access_token
 from api.deps.auth import get_current_user
 from logger import logger
+import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Get bot username from environment or use default
+BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "SusBonkBot")
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserRegister, db: Session = Depends(get_db)):
@@ -66,3 +70,22 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.get("/me/connect_telegram", response_model=TelegramConnectResponse)
+def connect_telegram(current_user: User = Depends(get_current_user)):
+    """Generate a link for connecting the user's Telegram account."""
+    logger.debug(f"Processing Telegram connection for user: {current_user.id}")
+    
+    if current_user.telegram_user_id is not None:
+        return TelegramConnectResponse(
+            status="already_connected",
+            message="You are already connected to a Telegram account"
+        )
+    
+    bot_link = f"Send `/start {current_user.id}` to https://t.me/{BOT_USERNAME}"
+    
+    return TelegramConnectResponse(
+        status="pending",
+        message="Click the link to connect your Telegram account",
+        bot_link=bot_link
+    )

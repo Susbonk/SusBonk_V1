@@ -1,11 +1,9 @@
 import { api } from './client.js';
 import type { Chat } from '../types/api.js';
 
+// Senior backend response structure
 interface ChatListResponse {
-  items: Chat[];
-  total: number;
-  page: number;
-  page_size: number;
+  chats: Chat[];
 }
 
 interface ChatUpdateRequest {
@@ -15,12 +13,15 @@ interface ChatUpdateRequest {
   cleanup_mentions?: boolean;
   cleanup_emojis?: boolean;
   cleanup_links?: boolean;
-  allowed_link_domains?: Record<string, unknown>;
+  allowed_link_domains?: string[];
+  cleanup_emails?: boolean;
+  max_emoji_count?: number;
+  allowed_mentions?: string[];
 }
 
 export async function listChats(): Promise<Chat[]> {
   const response = await api.get<ChatListResponse>('/chats');
-  return response.items;
+  return response.chats;
 }
 
 export async function getChat(chatId: string): Promise<Chat> {

@@ -28,7 +28,7 @@ def list_chats(
     total = query.count()
     items = query.offset((page - 1) * page_size).limit(page_size).all()
     
-    return ChatList(items=items, total=total, page=page, page_size=page_size)
+    return ChatList(chats=[ChatResponse.model_validate(c) for c in items])
 
 @router.get("/{chat_id}", response_model=ChatResponse)
 def get_chat(

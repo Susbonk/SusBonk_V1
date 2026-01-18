@@ -3,11 +3,11 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
-# Auth schemas
+# Auth schemas - aligned with Senior backend
 class UserRegister(BaseModel):
-    username: str
     email: EmailStr
     password: str
+    username: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -19,12 +19,20 @@ class Token(BaseModel):
 
 class UserResponse(BaseModel):
     id: UUID
-    username: Optional[str]
-    email: Optional[str]
-    telegram_user_id: Optional[int]
-    discord_user_id: Optional[int]
     created_at: datetime
+    updated_at: datetime
     is_active: bool
+    
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    
+    telegram_user_id: Optional[int] = None
+    discord_user_id: Optional[int] = None
     
     class Config:
         from_attributes = True
+
+class TelegramConnectResponse(BaseModel):
+    status: str  # "pending" or "already_connected"
+    message: str
+    bot_link: Optional[str] = None

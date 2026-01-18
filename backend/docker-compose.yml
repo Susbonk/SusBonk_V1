@@ -192,11 +192,27 @@ services:
       - db-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  frontend:
+    container_name: susbonk-frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    environment:
+      - VITE_API_URL=http://api-backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api-backend:
+        condition: service_healthy
+    networks:
+      - db-net
+    restart: unless-stopped
 
 volumes:
   opensearch-data:

@@ -31,16 +31,30 @@ class Chat(Base):
     platform_chat_id = Column(BigInteger, nullable=False)
     title = Column(String(255))
     chat_link = Column(String(512))
+    
+    # AI configuration
     enable_ai_check = Column(Boolean, default=False)
     prompts_threshold = Column(Float, default=0.35)
     custom_prompt_threshold = Column(Float, default=0.35)
+    
+    # Cleanup settings - aligned with Senior backend
     cleanup_mentions = Column(Boolean, default=False)
+    allowed_mentions = Column(JSONB, default=list)  # Added - was missing
+    
     cleanup_emojis = Column(Boolean, default=False)
+    max_emoji_count = Column(Integer, default=0)  # Added - was missing
+    
     cleanup_links = Column(Boolean, default=False)
-    allowed_link_domains = Column(JSONB)
+    allowed_link_domains = Column(JSONB, default=list)  # JSONB stores as list
+    
+    cleanup_emails = Column(Boolean, default=False)  # Added - was missing
+    
+    # Statistics (Junior-specific, kept for backward compatibility)
     processed_messages = Column(Integer, default=0)
     spam_detected = Column(Integer, default=0)
     messages_deleted = Column(Integer, default=0)
+    
+    # Metadata
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
@@ -54,7 +68,7 @@ class Prompt(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100))
-    prompt_text = Column(Text)
+    prompt_text = Column(Text, nullable=False)  # Required like Senior
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
@@ -65,7 +79,7 @@ class CustomPrompt(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100))
-    prompt_text = Column(Text)
+    prompt_text = Column(Text, nullable=False)  # Required like Senior
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)

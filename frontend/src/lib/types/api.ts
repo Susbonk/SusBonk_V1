@@ -3,17 +3,43 @@ export interface User {
   email: string;
   username?: string;
   created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  telegram_user_id?: number;
+  discord_user_id?: number;
 }
 
 export interface Chat {
   id: string;
-  title: string;
-  type: 'telegram' | 'discord';
+  title: string | null;
+  chat_link?: string | null;
+  type: string;
+  platform_chat_id: number;
+  user_id: string;
   enable_ai_check: boolean;
   prompts_threshold: number;
   custom_prompt_threshold: number;
-  spam_detected: number;
-  processed_messages: number;
+  cleanup_mentions: boolean;
+  allowed_mentions?: string[] | null;
+  cleanup_emojis: boolean;
+  max_emoji_count: number;
+  cleanup_links: boolean;
+  allowed_link_domains?: string[] | null;
+  cleanup_emails: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Legacy fields for backward compatibility
+  spam_detected?: number;
+  processed_messages?: number;
+}
+
+// Senior uses 'title' and 'text' with validation aliases from name/prompt_text
+export interface SystemPrompt {
+  id: string;
+  title: string | null;
+  text: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -21,10 +47,11 @@ export interface Chat {
 export interface CustomPrompt {
   id: string;
   user_id: string;
-  name: string;
-  prompt_text: string;
+  title: string | null;
+  text: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface UserState {

@@ -1,5 +1,6 @@
 // Shared types
 export type TabType = 'dashboard' | 'logs' | 'settings';
+export type SettingsTabType = 'chat' | 'members' | 'prompts';
 export type StrengthLevel = 'Chill' | 'Normal' | 'Bonkers';
 
 // Design tokens

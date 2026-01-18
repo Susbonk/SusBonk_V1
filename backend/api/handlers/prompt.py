@@ -33,7 +33,7 @@ def list_custom_prompts(
     total = query.count()
     items = query.offset((page - 1) * page_size).limit(page_size).all()
     
-    return CustomPromptList(items=items, total=total, page=page, page_size=page_size)
+    return CustomPromptList(prompts=[CustomPromptResponse.model_validate(p) for p in items])
 
 @router.get("/custom/{prompt_id}", response_model=CustomPromptResponse)
 def get_custom_prompt(
@@ -48,7 +48,7 @@ def get_custom_prompt(
     ).first()
     if not prompt:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom prompt not found")
-    return prompt
+    return CustomPromptResponse.model_validate(prompt)
 
 @router.post("/custom", response_model=CustomPromptResponse, status_code=status.HTTP_201_CREATED)
 def create_custom_prompt(
@@ -59,15 +59,16 @@ def create_custom_prompt(
     try:
         prompt = CustomPrompt(
             user_id=current_user.id,
-            name=prompt_data.name,
-            prompt_text=prompt_data.prompt_text
+            name=prompt_data.title,
+            prompt_text=prompt_data.text,
+            is_active=prompt_data.is_active
         )
         db.add(prompt)
         db.commit()
         db.refresh(prompt)
         
         logger.info(f"Custom prompt created: {prompt.id} by user {current_user.id}")
-        return prompt
+        return CustomPromptResponse.model_validate(prompt)
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to create custom prompt: {e}")
@@ -92,16 +93,18 @@ def update_custom_prompt(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom prompt not found")
     
     try:
-        if prompt_data.name is not None:
-            prompt.name = prompt_data.name
-        if prompt_data.prompt_text is not None:
-            prompt.prompt_text = prompt_data.prompt_text
+        if prompt_data.title is not None:
+            prompt.name = prompt_data.title
+        if prompt_data.text is not None:
+            prompt.prompt_text = prompt_data.text
+        if prompt_data.is_active is not None:
+            prompt.is_active = prompt_data.is_active
         
         db.commit()
         db.refresh(prompt)
         
         logger.info(f"Custom prompt updated: {prompt.id}")
-        return prompt
+        return CustomPromptResponse.model_validate(prompt)
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to update custom prompt: {e}")
@@ -157,7 +160,7 @@ def list_prompts(
     total = query.count()
     items = query.offset((page - 1) * page_size).limit(page_size).all()
     
-    return PromptList(items=items, total=total, page=page, page_size=page_size)
+    return PromptList(prompts=[PromptResponse.model_validate(p) for p in items])
 
 @router.get("/{prompt_id}", response_model=PromptResponse)
 def get_prompt(
@@ -168,4 +171,4 @@ def get_prompt(
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id, Prompt.is_active == True).first()
     if not prompt:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prompt not found")
-    return prompt
+    return PromptResponse.model_validate(prompt)

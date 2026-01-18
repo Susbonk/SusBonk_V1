@@ -23,8 +23,8 @@ def verify_chat_ownership(chat_id: UUID, current_user: User, db: Session) -> Cha
 @router.get("", response_model=UserStatesList)
 def list_user_states(
     chat_id: UUID,
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=200),  # Senior uses limit/offset
+    offset: int = Query(0, ge=0),
     ordering: Ordering = Depends(),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -39,9 +39,14 @@ def list_user_states(
     query = ordering.apply(query, UserState)
     
     total = query.count()
-    items = query.offset((page - 1) * page_size).limit(page_size).all()
+    items = query.offset(offset).limit(limit).all()
     
-    return UserStatesList(items=items, total=total, page=page, page_size=page_size)
+    return UserStatesList(
+        items=[UserStateResponse.model_validate(s) for s in items],
+        limit=limit,
+        offset=offset,
+        total=total
+    )
 
 @router.patch("/{state_id}", response_model=UserStateResponse)
 def update_user_state(
