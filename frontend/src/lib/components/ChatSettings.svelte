@@ -13,7 +13,7 @@
   let isLoading = $state(false);
   let isSaving = $state(false);
   
-  // Chat settings
+  // Group settings
   let enableAiCheck = $state(chat.enable_ai_check);
   let promptsThreshold = $state(chat.prompts_threshold);
   let customPromptThreshold = $state(chat.custom_prompt_threshold);
@@ -50,7 +50,7 @@
       
       alert('Settings saved successfully!');
     } catch (err) {
-      console.error('Failed to save chat settings:', err);
+      console.error('Failed to save group settings:', err);
       alert('Failed to save settings');
     } finally {
       isSaving = false;
@@ -61,7 +61,7 @@
 <div class="card">
   <div class="flex items-center gap-2 mb-4">
     <Settings class="w-5 h-5" />
-    <h3 class="font-extrabold">Chat Settings</h3>
+    <h3 class="font-extrabold">Group Settings</h3>
   </div>
 
   <div class="space-y-6">

@@ -45,10 +45,10 @@
   let systemPrompts = $state<SystemPrompt[]>([]);
   let isLoadingPrompts = $state(false);
 
-  // Settings sub-tab state (now includes Chat Settings, Custom Rules, Members, and Telegram)
+  // Settings sub-tab state (now includes Group Settings, Custom Rules, Members, and Telegram)
   let settingsTab = $state<SettingsTabType>('chat');
   const settingsTabs: { id: SettingsTabType; label: string }[] = [
-    { id: 'chat', label: 'Chat' },
+    { id: 'chat', label: 'Group' },
     { id: 'custom', label: 'Custom Rules' },
     { id: 'members', label: 'Members' },
     { id: 'telegram', label: 'Telegram' },
@@ -274,7 +274,7 @@
     {#if activeTab === 'logs'}
       <div class="p-4 space-y-4">
         <h2 class="text-2xl font-black">
-          Logs for {$chatsState.activeChat?.title || 'No Chat Selected'}
+          Logs for {$chatsState.activeChat?.title || 'No Group Selected'}
         </h2>
         <RecentBonks />
       </div>
@@ -283,7 +283,7 @@
     {#if activeTab === 'settings'}
       <div class="p-4 space-y-4">
         <h2 class="text-2xl font-black">Settings</h2>
-        <p class="text-gray-600 -mt-2">for {$chatsState.activeChat?.title || 'No Chat Selected'}</p>
+        <p class="text-gray-600 -mt-2">for {$chatsState.activeChat?.title || 'No Group Selected'}</p>
 
         <!-- Settings Sub-tabs (Chat and Members only) -->
         <div class="flex border-3 border-black">
@@ -308,7 +308,7 @@
               <ChatSettings chat={$chatsState.activeChat} />
             {:else}
               <div class="text-center py-8 text-gray-500 italic border-2 border-dashed border-gray-300">
-                Select a chat to configure settings
+                Select a group to configure settings
               </div>
             {/if}
           {/if}
