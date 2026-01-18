@@ -3,7 +3,7 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
-# Chat schemas - aligned with Senior backend (ChatSettingsResponse)
+# Chat schemas
 class ChatResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
@@ -63,7 +63,7 @@ class ChatUpdate(BaseModel):
 class ChatList(BaseModel):
     chats: List[ChatResponse]
 
-# User State schemas - aligned with Senior backend
+# User State schemas
 class UserStateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     

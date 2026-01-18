@@ -3,6 +3,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
 from settings import settings
 from api.handlers import auth, prompt, chat, user_state
 from logger import (
@@ -50,6 +51,7 @@ Use the `Authorization: Bearer <token>` header with your JWT token.
     """,
     version="0.1.0",
     lifespan=lifespan,
+    default_response_class=ORJSONResponse,
     openapi_tags=[
         {
             "name": "auth",
@@ -86,7 +88,7 @@ app.include_router(chat.router)
 app.include_router(user_state.router)
 
 @app.get("/health", tags=["health"])
-def health_check():
+async def health_check():
     """Health check endpoint for monitoring service availability"""
     log.info("Health check requested")
     
@@ -95,8 +97,8 @@ def health_check():
     try:
         from database.helper import engine
         from sqlalchemy import text
-        with engine.connect() as conn:
-            conn.execute(text('SELECT 1'))
+        async with engine.begin() as conn:
+            await conn.execute(text('SELECT 1'))
             db_status = "connected"
     except Exception as e:
         log.error(f"Database health check failed: {e}")

@@ -1,16 +1,17 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from database.helper import get_db
 from database.models import User
 from api.security import decode_access_token
 
 security = HTTPBearer()
 
-def get_current_user(
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> User:
     token = credentials.credentials
     try:
@@ -27,7 +28,8 @@ def get_current_user(
             detail="Invalid authentication credentials"
         )
     
-    user = db.query(User).filter(User.id == user_id).first()
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

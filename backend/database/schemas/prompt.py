@@ -3,7 +3,7 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
-# Prompt schemas - aligned with Senior backend
+# Prompt schemas
 class PromptResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
@@ -12,12 +12,12 @@ class PromptResponse(BaseModel):
     updated_at: datetime
     is_active: bool
     title: Optional[str] = Field(default=None, validation_alias="name")
-    text: str = Field(..., min_length=1, validation_alias="prompt_text")  # Required like Senior
+    text: str = Field(..., min_length=1, validation_alias="prompt_text")
 
 class PromptList(BaseModel):
     prompts: List[PromptResponse]
 
-# Custom Prompt schemas - aligned with Senior backend
+# Custom Prompt schemas
 class CustomPromptResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
@@ -25,9 +25,9 @@ class CustomPromptResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     is_active: bool
-    user_id: Optional[UUID] = None  # Optional like Senior
+    user_id: Optional[UUID] = None
     title: Optional[str] = Field(default=None, validation_alias="name")
-    text: str = Field(..., min_length=1, validation_alias="prompt_text")  # Required like Senior
+    text: str = Field(..., min_length=1, validation_alias="prompt_text")
 
 class CustomPromptList(BaseModel):
     prompts: List[CustomPromptResponse]

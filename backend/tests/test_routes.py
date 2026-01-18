@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 from database.models import Prompt
 from uuid import uuid4
 
@@ -8,24 +9,25 @@ from uuid import uuid4
 class TestRouteConflicts:
     
     # T116: GET /prompts/custom returns custom prompts list (not 404)
-    def test_prompts_custom_route_works(self, authenticated_client):
+    @pytest.mark.asyncio
+    async def test_prompts_custom_route_works(self, authenticated_client):
         client, token = authenticated_client
-        response = client.get("/prompts/custom")
+        response = await client.get("/prompts/custom")
         assert response.status_code == 200
         data = response.json()
-        assert "items" in data
-        assert "total" in data
+        assert "prompts" in data
     
     # T117: GET /prompts/{valid_uuid} returns system prompt
-    def test_prompts_uuid_route_works(self, authenticated_client, db_session):
+    @pytest.mark.asyncio
+    async def test_prompts_uuid_route_works(self, authenticated_client, db_session):
         client, token = authenticated_client
         
         # Create a system prompt
         prompt = Prompt(name="Test Prompt", prompt_text="Test text")
         db_session.add(prompt)
-        db_session.commit()
+        await db_session.commit()
         
-        response = client.get(f"/prompts/{prompt.id}")
+        response = await client.get(f"/prompts/{prompt.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "Test Prompt"

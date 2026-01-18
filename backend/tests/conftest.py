@@ -1,45 +1,54 @@
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import pytest_asyncio
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from database.helper import Base, get_db
 from main import app
 import os
 
 # Test database URL
-TEST_DATABASE_URL = "sqlite:///./test.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 # Create test engine
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_async_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
 # Override settings for testing
 os.environ["JWT_SECRET"] = "test-secret-key-for-testing-only"
 
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
+async def override_get_db():
+    async with TestingSessionLocal() as session:
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
 
 app.dependency_overrides[get_db] = override_get_db
 
-@pytest.fixture(scope="function")
-def client():
+@pytest_asyncio.fixture
+async def client():
     # Create tables
-    Base.metadata.create_all(bind=engine)
-    yield TestClient(app)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+    
     # Drop tables
-    Base.metadata.drop_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
-@pytest.fixture(scope="function")
-def db_session():
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    Base.metadata.drop_all(bind=engine)
+@pytest_asyncio.fixture
+async def db_session():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    async with TestingSessionLocal() as session:
+        yield session
+    
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 @pytest.fixture
 def test_user_data():
@@ -49,10 +58,10 @@ def test_user_data():
         "password": "testpass123"
     }
 
-@pytest.fixture
-def authenticated_client(client, test_user_data):
+@pytest_asyncio.fixture
+async def authenticated_client(client, test_user_data):
     # Register user
-    response = client.post("/auth/register", json=test_user_data)
+    response = await client.post("/auth/register", json=test_user_data)
     token = response.json()["access_token"]
     
     # Create new client with auth header

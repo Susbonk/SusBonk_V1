@@ -30,7 +30,7 @@ CREATE TABLE users (
 -- ============================================================================
 -- CHATS TABLE
 -- Chat configuration with platform type and platform-specific chat ID
--- Aligned with Senior backend (TGAntiSpamBot-V2)
+-- Chat configuration with platform type and platform-specific chat ID
 -- ============================================================================
 CREATE TABLE chats (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -51,17 +51,17 @@ CREATE TABLE chats (
     prompts_threshold FLOAT DEFAULT 0.35 CHECK (prompts_threshold >= 0 AND prompts_threshold <= 1),
     custom_prompt_threshold FLOAT DEFAULT 0.35 CHECK (custom_prompt_threshold >= 0 AND custom_prompt_threshold <= 1),
     
-    -- Cleanup settings (aligned with Senior backend)
+    -- Cleanup settings
     cleanup_mentions BOOLEAN DEFAULT false,
-    allowed_mentions JSONB,  -- Added for Senior compatibility
+    allowed_mentions JSONB,
     
     cleanup_emojis BOOLEAN DEFAULT false,
-    max_emoji_count INTEGER DEFAULT 0,  -- Added for Senior compatibility
+    max_emoji_count INTEGER DEFAULT 0,
     
     cleanup_links BOOLEAN DEFAULT false,
     allowed_link_domains JSONB,
     
-    cleanup_emails BOOLEAN DEFAULT false,  -- Added for Senior compatibility
+    cleanup_emails BOOLEAN DEFAULT false,
     
     -- Statistics counters (Junior-specific, kept for backward compatibility)
     processed_messages INTEGER DEFAULT 0,
@@ -164,7 +164,7 @@ CREATE TABLE chat_custom_prompts (
 
 -- ============================================================================
 -- RUNTIME STATISTICS TABLE
--- System metrics tracking (NEW - from senior implementation)
+-- System metrics tracking
 -- ============================================================================
 CREATE TABLE runtime_statistics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

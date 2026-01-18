@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
-# Auth schemas - aligned with Senior backend
+# Auth schemas
 class UserRegister(BaseModel):
     email: EmailStr
     password: str

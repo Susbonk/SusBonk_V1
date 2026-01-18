@@ -37,7 +37,7 @@ class Chat(Base):
     prompts_threshold = Column(Float, default=0.35)
     custom_prompt_threshold = Column(Float, default=0.35)
     
-    # Cleanup settings - aligned with Senior backend
+    # Cleanup settings
     cleanup_mentions = Column(Boolean, default=False)
     allowed_mentions = Column(JSONB, default=list)  # Added - was missing
     
@@ -68,7 +68,7 @@ class Prompt(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100))
-    prompt_text = Column(Text, nullable=False)  # Required like Senior
+    prompt_text = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
@@ -79,7 +79,7 @@ class CustomPrompt(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100))
-    prompt_text = Column(Text, nullable=False)  # Required like Senior
+    prompt_text = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
