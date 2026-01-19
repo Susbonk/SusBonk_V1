@@ -1,0 +1,25 @@
+[package]
+name = "telegram-bot"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "telegram-bot"
+path = "src/main.rs"
+
+[dependencies]
+config = { path = "../config" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+axum = { workspace = true }
+teloxide = { workspace = true }
+redis = { workspace = true }
+sqlx = { workspace = true }
+regex = { workspace = true }

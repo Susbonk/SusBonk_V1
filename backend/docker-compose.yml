@@ -108,6 +108,59 @@ services:
       retries: 3
       start_period: 10s
 
+  telegram-bot:
+    build:
+      context: ../telegram-bot
+      dockerfile: telegram-bot/Dockerfile
+    container_name: susbonk-telegram-bot
+    env_file:
+      - ../.env
+    environment:
+      - RUST_LOG=info
+      - HEALTH_PORT=8081
+      - INGEST_URL=http://log-ingest:8080
+      - USE_WEBHOOKS=false
+    ports:
+      - "8081:8081"
+    depends_on:
+      log-ingest:
+        condition: service_healthy
+      pg-database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - susbonk-network
+      - db-net
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8081/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: susbonk-redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - db-net
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
   pg-database:
     image: postgres:16-alpine
     container_name: susbonk-postgres
@@ -188,6 +241,8 @@ services:
     depends_on:
       pg-database:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - db-net
     restart: unless-stopped
@@ -217,6 +272,7 @@ services:
 volumes:
   opensearch-data:
   postgres-data:
+  redis-data:
 
 
 networks:
