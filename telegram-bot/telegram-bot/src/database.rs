@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ChatConfig {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -14,6 +15,14 @@ pub struct ChatConfig {
     pub cleanup_links: bool,
     pub allowed_link_domains: Option<serde_json::Value>,
     pub is_active: bool,
+}
+
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct User {
+    pub id: Uuid,
+    pub telegram_user_id: i64,
+    pub username: Option<String>,
 }
 
 pub struct DatabaseClient {
@@ -94,6 +103,7 @@ impl DatabaseClient {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn register_chat(&self, platform_chat_id: i64, title: Option<String>, user_id: Uuid) -> Result<Uuid, sqlx::Error> {
         let chat_id = Uuid::new_v4();
         
@@ -146,5 +156,147 @@ impl DatabaseClient {
         }
 
         Ok(result.rows_affected() > 0)
+    }
+
+    pub async fn find_or_create_user(&self, telegram_user_id: i64, username: Option<String>) -> Result<Uuid, sqlx::Error> {
+        let row = sqlx::query(
+            r#"
+            INSERT INTO users (telegram_user_id, username, is_active)
+            VALUES ($1, $2, true)
+            ON CONFLICT (telegram_user_id) 
+            DO UPDATE SET username = EXCLUDED.username, updated_at = CURRENT_TIMESTAMP
+            RETURNING id
+            "#
+        )
+        .bind(telegram_user_id)
+        .bind(username)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(row.get("id"))
+    }
+
+    pub async fn ensure_chat_registered(&self, platform_chat_id: i64, title: Option<String>, telegram_user_id: i64) -> Result<Uuid, sqlx::Error> {
+        let user_id = self.find_or_create_user(telegram_user_id, None).await?;
+        
+        let row = sqlx::query(
+            r#"
+            INSERT INTO chats (user_id, type, platform_chat_id, title, cleanup_links, is_active)
+            VALUES ($1, 'telegram', $2, $3, true, true)
+            ON CONFLICT (type, platform_chat_id) 
+            DO UPDATE SET 
+                title = EXCLUDED.title,
+                updated_at = CURRENT_TIMESTAMP
+            RETURNING id
+            "#
+        )
+        .bind(user_id)
+        .bind(platform_chat_id)
+        .bind(title)
+        .fetch_one(&self.pool)
+        .await?;
+
+        let chat_id = row.get("id");
+        
+        // Clear cache
+        {
+            let mut cache = self.cache.write().await;
+            cache.remove(&platform_chat_id);
+        }
+
+        info!("Ensured chat {} registered with ID {}", platform_chat_id, chat_id);
+        Ok(chat_id)
+    }
+
+    pub async fn increment_processed_messages(&self, platform_chat_id: i64) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            UPDATE chats 
+            SET processed_messages = processed_messages + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE platform_chat_id = $1 AND type = 'telegram'
+            "#
+        )
+        .bind(platform_chat_id)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn increment_spam_detected(&self, platform_chat_id: i64) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            UPDATE chats 
+            SET spam_detected = spam_detected + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE platform_chat_id = $1 AND type = 'telegram'
+            "#
+        )
+        .bind(platform_chat_id)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn add_allowed_domain(&self, platform_chat_id: i64, domain: String) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            UPDATE chats 
+            SET allowed_link_domains = COALESCE(allowed_link_domains, '[]'::jsonb) || jsonb_build_array($2::text),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE platform_chat_id = $1 AND type = 'telegram'
+            "#
+        )
+        .bind(platform_chat_id)
+        .bind(domain)
+        .execute(&self.pool)
+        .await?;
+
+        // Clear cache
+        {
+            let mut cache = self.cache.write().await;
+            cache.remove(&platform_chat_id);
+        }
+        Ok(())
+    }
+
+    pub async fn remove_allowed_domain(&self, platform_chat_id: i64, domain: String) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            UPDATE chats 
+            SET allowed_link_domains = (
+                SELECT jsonb_agg(elem)
+                FROM jsonb_array_elements(COALESCE(allowed_link_domains, '[]'::jsonb)) elem
+                WHERE elem::text != to_jsonb($2::text)::text
+            ),
+            updated_at = CURRENT_TIMESTAMP
+            WHERE platform_chat_id = $1 AND type = 'telegram'
+            "#
+        )
+        .bind(platform_chat_id)
+        .bind(domain)
+        .execute(&self.pool)
+        .await?;
+
+        // Clear cache
+        {
+            let mut cache = self.cache.write().await;
+            cache.remove(&platform_chat_id);
+        }
+        Ok(())
+    }
+
+    pub async fn get_allowed_domains(&self, platform_chat_id: i64) -> Result<Vec<String>, sqlx::Error> {
+        let config = self.get_chat_config(platform_chat_id).await?;
+        
+        if let Some(config) = config {
+            if let Some(serde_json::Value::Array(domains)) = config.allowed_link_domains {
+                let domain_list: Vec<String> = domains
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
+                return Ok(domain_list);
+            }
+        }
+        
+        Ok(Vec::new())
     }
 }

@@ -53,6 +53,7 @@ impl LogPlatformClient {
         ).await;
     }
 
+    #[allow(dead_code)]
     pub async fn log_shutdown(&self) {
         self.log_bot_event(
             "info",
@@ -100,11 +101,9 @@ impl LogPlatformClient {
             "component": "telegram-bot"
         });
 
-        if let Some(ctx) = context {
-            if let serde_json::Value::Object(ctx_map) = ctx {
-                if let serde_json::Value::Object(ref mut labels_map) = labels {
-                    labels_map.extend(ctx_map);
-                }
+        if let Some(serde_json::Value::Object(ctx_map)) = context {
+            if let serde_json::Value::Object(ref mut labels_map) = labels {
+                labels_map.extend(ctx_map);
             }
         }
 
@@ -113,7 +112,7 @@ impl LogPlatformClient {
 
     async fn send_log_event(&self, event: LogEvent) -> Result<(), reqwest::Error> {
         let response = self.client
-            .post(&format!("{}/ingest", self.ingest_url))
+            .post(format!("{}/ingest", self.ingest_url))
             .json(&event)
             .send()
             .await?;

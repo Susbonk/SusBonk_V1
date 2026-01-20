@@ -1,6 +1,5 @@
 use crate::types::SpamEvent;
 use redis::{Client, aio::Connection, RedisResult};
-use serde_json;
 use tracing::{info, error};
 
 pub struct RedisStreamsClient {

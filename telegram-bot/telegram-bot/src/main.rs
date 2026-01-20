@@ -29,6 +29,12 @@ enum Command {
     Enable,
     #[command(description = "Disable spam detection for this chat")]
     Disable,
+    #[command(description = "Add domain to whitelist (e.g., /whitelist_add example.com)")]
+    WhitelistAdd(String),
+    #[command(description = "Remove domain from whitelist")]
+    WhitelistRemove(String),
+    #[command(description = "Show whitelisted domains")]
+    WhitelistList,
 }
 
 struct AppState {
@@ -67,23 +73,29 @@ async fn handle_command(bot: Bot, msg: Message, cmd: Command, state: Arc<AppStat
             bot.send_message(chat_id, "🐕 SusBonk Bot is now active! I'll silently monitor for spam links.\n\nUse /enable to activate spam detection for this chat.").await?;
         }
         Command::Help => {
-            bot.send_message(chat_id, "🐕 SusBonk Bot Commands:\n/start - Activate bot\n/help - Show this help\n/enable - Enable spam detection (admin only)\n/disable - Disable spam detection (admin only)").await?;
+            bot.send_message(chat_id, "🐕 SusBonk Bot Commands:\n/start - Activate bot\n/help - Show this help\n/enable - Enable spam detection (admin only)\n/disable - Disable spam detection (admin only)\n/whitelist_add <domain> - Add domain to whitelist\n/whitelist_remove <domain> - Remove domain from whitelist\n/whitelist_list - Show whitelisted domains").await?;
         }
         Command::Enable => {
             if !is_user_admin(&bot, chat_id, user_id).await {
                 bot.send_message(chat_id, "❌ Only group administrators can enable spam detection").await?;
                 success = false;
             } else {
-                match state.db_client.set_chat_enabled(chat_id.0, true).await {
-                    Ok(true) => {
-                        bot.send_message(chat_id, "✅ Spam detection enabled for this chat").await?;
-                    }
-                    Ok(false) => {
-                        bot.send_message(chat_id, "❌ Chat not found. Please contact support.").await?;
-                        success = false;
+                let chat_title = msg.chat.title().map(|s| s.to_string());
+                match state.db_client.ensure_chat_registered(chat_id.0, chat_title, user_id.0 as i64).await {
+                    Ok(_) => {
+                        match state.db_client.set_chat_enabled(chat_id.0, true).await {
+                            Ok(_) => {
+                                bot.send_message(chat_id, "✅ Chat registered and spam detection enabled").await?;
+                            }
+                            Err(e) => {
+                                error!("Database error enabling chat: {}", e);
+                                bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
+                                success = false;
+                            }
+                        }
                     }
                     Err(e) => {
-                        error!("Database error enabling chat: {}", e);
+                        error!("Database error registering chat: {}", e);
                         bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
                         success = false;
                     }
@@ -100,7 +112,7 @@ async fn handle_command(bot: Bot, msg: Message, cmd: Command, state: Arc<AppStat
                         bot.send_message(chat_id, "🔕 Spam detection disabled for this chat").await?;
                     }
                     Ok(false) => {
-                        bot.send_message(chat_id, "❌ Chat not found. Please contact support.").await?;
+                        bot.send_message(chat_id, "❌ Chat not registered. Use /enable first.").await?;
                         success = false;
                     }
                     Err(e) => {
@@ -108,6 +120,69 @@ async fn handle_command(bot: Bot, msg: Message, cmd: Command, state: Arc<AppStat
                         bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
                         success = false;
                     }
+                }
+            }
+        }
+        Command::WhitelistAdd(domain) => {
+            if !is_user_admin(&bot, chat_id, user_id).await {
+                bot.send_message(chat_id, "❌ Only group administrators can manage whitelist").await?;
+                success = false;
+            } else {
+                let clean_domain = domain.trim().to_lowercase();
+                if clean_domain.is_empty() {
+                    bot.send_message(chat_id, "❌ Please provide a domain (e.g., /whitelist_add example.com)").await?;
+                    success = false;
+                } else {
+                    match state.db_client.add_allowed_domain(chat_id.0, clean_domain.clone()).await {
+                        Ok(_) => {
+                            bot.send_message(chat_id, format!("✅ Added {} to whitelist", clean_domain)).await?;
+                        }
+                        Err(e) => {
+                            error!("Database error adding domain: {}", e);
+                            bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
+                            success = false;
+                        }
+                    }
+                }
+            }
+        }
+        Command::WhitelistRemove(domain) => {
+            if !is_user_admin(&bot, chat_id, user_id).await {
+                bot.send_message(chat_id, "❌ Only group administrators can manage whitelist").await?;
+                success = false;
+            } else {
+                let clean_domain = domain.trim().to_lowercase();
+                if clean_domain.is_empty() {
+                    bot.send_message(chat_id, "❌ Please provide a domain (e.g., /whitelist_remove example.com)").await?;
+                    success = false;
+                } else {
+                    match state.db_client.remove_allowed_domain(chat_id.0, clean_domain.clone()).await {
+                        Ok(_) => {
+                            bot.send_message(chat_id, format!("✅ Removed {} from whitelist", clean_domain)).await?;
+                        }
+                        Err(e) => {
+                            error!("Database error removing domain: {}", e);
+                            bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
+                            success = false;
+                        }
+                    }
+                }
+            }
+        }
+        Command::WhitelistList => {
+            match state.db_client.get_allowed_domains(chat_id.0).await {
+                Ok(domains) => {
+                    if domains.is_empty() {
+                        bot.send_message(chat_id, "📋 No whitelisted domains").await?;
+                    } else {
+                        let list = domains.join("\n• ");
+                        bot.send_message(chat_id, format!("📋 Whitelisted domains:\n• {}", list)).await?;
+                    }
+                }
+                Err(e) => {
+                    error!("Database error getting domains: {}", e);
+                    bot.send_message(chat_id, "❌ Database error. Please try again later.").await?;
+                    success = false;
                 }
             }
         }
@@ -124,8 +199,9 @@ async fn handle_command(bot: Bot, msg: Message, cmd: Command, state: Arc<AppStat
     Ok(())
 }
 
-async fn handle_message(msg: Message, state: Arc<AppState>) -> ResponseResult<()> {
+async fn handle_message(bot: Bot, msg: Message, state: Arc<AppState>) -> ResponseResult<()> {
     let chat_id = msg.chat.id.0;
+    let message_id = msg.id;
     
     // Check if spam detection is enabled for this chat
     if !state.db_client.is_chat_enabled(chat_id).await {
@@ -133,6 +209,11 @@ async fn handle_message(msg: Message, state: Arc<AppState>) -> ResponseResult<()
     }
 
     if let Some(text) = msg.text() {
+        // Increment processed messages counter
+        if let Err(e) = state.db_client.increment_processed_messages(chat_id).await {
+            error!("Failed to increment processed messages: {}", e);
+        }
+        
         info!("Processing message in chat {}: {}", chat_id, text);
         
         // Get chat configuration for link detection
@@ -147,6 +228,13 @@ async fn handle_message(msg: Message, state: Arc<AppState>) -> ResponseResult<()
         // Detect suspicious links
         let detections = state.link_detector.detect_links(text, chat_config.as_ref());
         
+        if !detections.is_empty() {
+            // Increment spam detected counter
+            if let Err(e) = state.db_client.increment_spam_detected(chat_id).await {
+                error!("Failed to increment spam detected: {}", e);
+            }
+        }
+        
         for detection in detections {
             let user_info = UserInfo {
                 id: msg.from.as_ref().map(|u| u.id.0 as i64).unwrap_or(0),
@@ -160,11 +248,33 @@ async fn handle_message(msg: Message, state: Arc<AppState>) -> ResponseResult<()
                 user: user_info,
                 detection_type: detection.detection_type.clone(),
                 message_text: text.to_string(),
-                detected_content: detection.detected_url,
+                detected_content: detection.detected_url.clone(),
                 confidence: detection.confidence,
             };
             
             info!("Detected spam: {} (confidence: {:.2})", detection.reason, detection.confidence);
+            
+            // Delete spam message if confidence is high
+            if detection.confidence >= 0.8 {
+                match bot.delete_message(msg.chat.id, message_id).await {
+                    Ok(_) => {
+                        info!("Deleted spam message {} in chat {}", message_id, chat_id);
+                        
+                        // Notify about deletion (optional, can be made configurable)
+                        let notification = format!(
+                            "🚨 Spam detected and removed\nReason: {}\nConfidence: {:.0}%",
+                            detection.reason,
+                            detection.confidence * 100.0
+                        );
+                        if let Err(e) = bot.send_message(msg.chat.id, notification).await {
+                            error!("Failed to send deletion notification: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to delete spam message: {}", e);
+                    }
+                }
+            }
             
             // Log to Redis Streams
             if let Err(e) = state.redis_client.log_spam_event(&spam_event).await {
@@ -217,9 +327,9 @@ async fn main() -> anyhow::Result<()> {
     // Log startup
     state.log_client.log_startup().await;
     
-    // Create consumer group for spam events
-    if let Err(e) = state.redis_client.create_consumer_group("spam_events:*", "spam_processors").await {
-        error!("Failed to create consumer group: {}", e);
+    // Create consumer group for spam events (use fixed stream name)
+    if let Err(e) = state.redis_client.create_consumer_group("spam_events", "spam_processors").await {
+        error!("Failed to create consumer group (may already exist): {}", e);
     }
     
     // Start health check server
@@ -230,8 +340,17 @@ async fn main() -> anyhow::Result<()> {
     info!("Health check server listening on {}", health_addr);
     
     tokio::spawn(async move {
-        let listener = TcpListener::bind(&health_addr).await.unwrap();
-        axum::serve(listener, health_app).await.unwrap();
+        match TcpListener::bind(&health_addr).await {
+            Ok(listener) => {
+                info!("Health server bound successfully");
+                if let Err(e) = axum::serve(listener, health_app).await {
+                    error!("Health server error: {}", e);
+                }
+            }
+            Err(e) => {
+                error!("Failed to bind health server on {}: {}", health_addr, e);
+            }
+        }
     });
 
     // Start bot
@@ -265,9 +384,9 @@ async fn main() -> anyhow::Result<()> {
             Update::filter_message()
                 .endpoint({
                     let state = state.clone();
-                    move |msg| {
+                    move |bot, msg| {
                         let state = state.clone();
-                        async move { handle_message(msg, state).await }
+                        async move { handle_message(bot, msg, state).await }
                     }
                 })
         );

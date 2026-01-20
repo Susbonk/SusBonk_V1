@@ -150,4 +150,4 @@ impl Config {
     }
 }
 
-pub static CONFIG: Lazy<Config> = Lazy::new(|| Config::load());
+pub static CONFIG: Lazy<Config> = Lazy::new(Config::load);

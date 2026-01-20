@@ -44,12 +44,29 @@ impl LinkDetector {
         }
     }
 
-    pub fn detect_links(&self, text: &str, _config: Option<&ChatConfig>) -> Vec<LinkDetection> {
+    pub fn detect_links(&self, text: &str, config: Option<&ChatConfig>) -> Vec<LinkDetection> {
         let mut detections = Vec::new();
+        
+        // Extract whitelisted domains from config
+        let whitelisted_domains: Vec<String> = config
+            .and_then(|c| c.allowed_link_domains.as_ref())
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
 
         // Extract all URLs from the message
         for url_match in self.url_regex.find_iter(text) {
             let url = url_match.as_str();
+            
+            // Check if domain is whitelisted
+            let is_whitelisted = whitelisted_domains.iter().any(|domain| url.contains(domain));
+            if is_whitelisted {
+                continue; // Skip whitelisted domains
+            }
             
             // Check for shortened URLs
             if let Some(detection) = self.check_shortened_url(url) {
@@ -143,6 +160,7 @@ impl LinkDetector {
         }
     }
 
+    #[allow(dead_code)]
     pub fn extract_all_urls(&self, text: &str) -> Vec<String> {
         self.url_regex
             .find_iter(text)
