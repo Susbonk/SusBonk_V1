@@ -34,7 +34,7 @@ export interface Chat {
   processed_messages?: number;
 }
 
-// Senior uses 'title' and 'text' with validation aliases from name/prompt_text
+// Uses 'title' and 'text' with validation aliases from name/prompt_text
 export interface SystemPrompt {
   id: string;
   title: string | null;

@@ -1,7 +1,7 @@
 import { api } from './client.js';
 import type { CustomPrompt, SystemPrompt } from '../types/api.js';
 
-// Senior backend response structures
+// API response structures
 interface SystemPromptListResponse {
   prompts: SystemPrompt[];
 }

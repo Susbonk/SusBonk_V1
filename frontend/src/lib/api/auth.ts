@@ -17,7 +17,7 @@ interface TokenResponse {
   token_type: string;
 }
 
-// Senior backend returns UserResponse on register (no auto-login token)
+// Registration returns UserResponse (no auto-login token)
 // We need to login separately after registration
 export async function register(data: RegisterRequest): Promise<User> {
   const user = await api.post<User>('/auth/register', data);

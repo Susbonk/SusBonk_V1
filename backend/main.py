@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from settings import settings
 from api.handlers import auth, prompt, chat, user_state
+from database.redis_helper import redis_helper
 from logger import (
     setup_logging,
     start_log_shipping,
@@ -20,10 +21,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await start_log_shipping()
 
     log.info("Starting up the SusBonk API...")
+    
+    # Test Redis connection
+    try:
+        redis_healthy = await redis_helper.health_check()
+        if redis_healthy:
+            log.info("Redis connection successful")
+        else:
+            log.warning("Redis connection failed - continuing without Redis")
+    except Exception as e:
+        log.warning(f"Redis connection error: {e} - continuing without Redis")
 
     yield
 
     log.info("Shutting down the SusBonk API...")
+    await redis_helper.close()
     await stop_log_shipping()
     log.info("Application shutdown complete")
 
@@ -103,10 +115,14 @@ async def health_check():
     except Exception as e:
         log.error(f"Database health check failed: {e}")
     
+    # Check Redis connection
+    redis_status = "connected" if await redis_helper.health_check() else "disconnected"
+    
     return {
         "status": "healthy",
         "service": "susbonk-api",
-        "database": db_status
+        "database": db_status,
+        "redis": redis_status
     }
 
 if __name__ == "__main__":

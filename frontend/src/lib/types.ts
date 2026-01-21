@@ -1,6 +1,6 @@
 // Shared types
 export type TabType = 'dashboard' | 'logs' | 'settings';
-export type SettingsTabType = 'chat' | 'custom' | 'members' | 'telegram';
+export type SettingsTabType = 'telegram' | 'members' | 'whitelist';
 export type StrengthLevel = 'Chill' | 'Normal' | 'Bonkers';
 
 // Design tokens

@@ -20,6 +20,8 @@
   import MembersPanel from './MembersPanel.svelte';
   import ChatSettings from './ChatSettings.svelte';
   import TelegramConnection from './TelegramConnection.svelte';
+  import GroupSettingsDrawer from './GroupSettingsDrawer.svelte';
+  import WhitelistPanel from './WhitelistPanel.svelte';
   import { chatsState, promptsState } from '../stores/index.js';
   import {
     listSystemPrompts,
@@ -40,18 +42,20 @@
   let { onEmergencyStop, onAddGroup, activeTab }: Props = $props();
 
   // Moderation section state
-  let builtInExpanded = $state(true);
+  let promptsExpanded = $state(true);
   let customExpanded = $state(true);
   let systemPrompts = $state<SystemPrompt[]>([]);
   let isLoadingPrompts = $state(false);
 
-  // Settings sub-tab state (now includes Group Settings, Custom Rules, Members, and Telegram)
-  let settingsTab = $state<SettingsTabType>('chat');
+  // Group settings drawer state
+  let isGroupSettingsOpen = $state(false);
+
+  // Settings sub-tab state (now Account-focused)
+  let settingsTab = $state<SettingsTabType>('telegram');
   const settingsTabs: { id: SettingsTabType; label: string }[] = [
-    { id: 'chat', label: 'Group' },
-    { id: 'custom', label: 'Custom Rules' },
-    { id: 'members', label: 'Members' },
     { id: 'telegram', label: 'Telegram' },
+    { id: 'members', label: 'Members Mgmt' },
+    { id: 'whitelist', label: 'Whitelist' },
   ];
 
   // Modal state for creating/editing custom prompts
@@ -179,24 +183,25 @@
             .filter((t): t is string => t !== null)}
           activeGroup={$chatsState.activeChat?.title || ''}
           onGroupChange={handleGroupChange}
+          onEditGroup={() => (isGroupSettingsOpen = true)}
         />
 
         <div>
           <h2 class="mb-3 text-lg font-extrabold">Moderation Strength</h2>
 
-          <!-- Built-in Rules (System Prompts) -->
+          <!-- System Prompts (formerly Built-in Rules) -->
           <div class="mb-4">
             <button
-              onclick={() => (builtInExpanded = !builtInExpanded)}
+              onclick={() => (promptsExpanded = !promptsExpanded)}
               class="w-full flex items-center justify-between py-2 px-3 bg-gray-100 border-3 border-black mb-2 font-bold text-sm"
             >
-              <span>Built-in Rules ({systemPrompts.length})</span>
-              {#if builtInExpanded}<ChevronUp class="w-5 h-5" />{:else}<ChevronDown
+              <span>Prompts ({systemPrompts.length})</span>
+              {#if promptsExpanded}<ChevronUp class="w-5 h-5" />{:else}<ChevronDown
                   class="w-5 h-5"
                 />{/if}
             </button>
 
-            {#if builtInExpanded}
+            {#if promptsExpanded}
               <div class="space-y-3">
                 {#if isLoadingPrompts}
                   <div class="text-center py-6 text-gray-500">Loading prompts...</div>
@@ -282,10 +287,10 @@
 
     {#if activeTab === 'settings'}
       <div class="p-4 space-y-4">
-        <h2 class="text-2xl font-black">Settings</h2>
-        <p class="text-gray-600 -mt-2">for {$chatsState.activeChat?.title || 'No Group Selected'}</p>
+        <h2 class="text-2xl font-black">Account</h2>
+        <p class="text-gray-600 -mt-2">Manage your account and connections</p>
 
-        <!-- Settings Sub-tabs (Chat and Members only) -->
+        <!-- Account Sub-tabs -->
         <div class="flex border-3 border-black">
           {#each settingsTabs as tab, index}
             <button
@@ -301,34 +306,47 @@
           {/each}
         </div>
 
-        <!-- Settings Content -->
+        <!-- Account Content -->
         <div class="mt-4">
-          {#if settingsTab === 'chat'}
-            {#if $chatsState.activeChat}
-              <ChatSettings chat={$chatsState.activeChat} />
-            {:else}
-              <div class="text-center py-8 text-gray-500 italic border-2 border-dashed border-gray-300">
-                Select a group to configure settings
-              </div>
-            {/if}
-          {/if}
-
-          {#if settingsTab === 'custom'}
-            <CustomBlockSection />
+          {#if settingsTab === 'telegram'}
+            <TelegramConnection />
           {/if}
 
           {#if settingsTab === 'members'}
             <MembersPanel />
           {/if}
 
-          {#if settingsTab === 'telegram'}
-            <TelegramConnection />
+          {#if settingsTab === 'whitelist'}
+            <WhitelistPanel />
           {/if}
+        </div>
+
+        <!-- Group Settings Hint -->
+        <div class="mt-6 p-4 bg-gray-50 border-3 border-black border-dashed">
+          <p class="text-sm text-gray-600">
+            <strong>Looking for group settings?</strong> Select a group on the Dashboard and click
+            the
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 bg-[#FF8A00] border-2 border-black text-xs font-bold"
+            >
+              Edit
+            </span>
+            button to configure AI detection, cleanup rules, and more.
+          </p>
         </div>
       </div>
     {/if}
   </div>
 </div>
+
+<!-- Group Settings Drawer -->
+{#if $chatsState.activeChat}
+  <GroupSettingsDrawer
+    chat={$chatsState.activeChat}
+    isOpen={isGroupSettingsOpen}
+    onClose={() => (isGroupSettingsOpen = false)}
+  />
+{/if}
 
 <!-- Create/Edit Custom Prompt Modal -->
 {#if isModalOpen}
@@ -339,7 +357,13 @@
     role="button"
     tabindex="0"
   >
-    <div class="modal-content" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.key === 'Enter' && e.stopPropagation()} role="dialog" tabindex="-1">
+    <div
+      class="modal-content"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.key === 'Enter' && e.stopPropagation()}
+      role="dialog"
+      tabindex="-1"
+    >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-extrabold">{editingPrompt ? 'Edit' : 'New'} Custom Rule</h2>
         <button onclick={closeModal} class="p-1 hover:bg-gray-100"><X class="w-6 h-6" /></button>

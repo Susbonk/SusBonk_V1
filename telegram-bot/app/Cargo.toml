@@ -1,0 +1,37 @@
+[package]
+name = "bot"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "bot"
+path = "main.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+log.workspace = true
+tracing.workspace = true
+tracing-core.workspace = true
+tracing-subscriber.workspace = true
+tracing-log.workspace = true
+teloxide.workspace = true
+dotenvy.workspace = true
+serde.workspace = true
+url.workspace = true
+
+reqwest.workspace = true
+serde_json.workspace = true
+
+chrono.workspace = true
+
+sea-orm.workspace = true
+uuid.workspace = true
+
+once_cell.workspace = true
+regex.workspace = true
+
+config = { path = "../config" }
+entity = { path = "../entity" }
+redis = { version = "0.27", features = ["tokio-comp"] }

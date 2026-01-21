@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LayoutGrid, Scroll, Settings } from 'lucide-svelte';
+  import { LayoutGrid, Scroll, User } from 'lucide-svelte';
   import type { TabType } from '../types';
 
   interface Props {
@@ -12,7 +12,7 @@
   const tabs = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutGrid },
     { id: 'logs' as const, label: 'Logs', icon: Scroll },
-    { id: 'settings' as const, label: 'Settings', icon: Settings },
+    { id: 'settings' as const, label: 'Account', icon: User },
   ];
 </script>
 
@@ -21,10 +21,14 @@
     {#each tabs as tab, index}
       {@const isActive = activeTab === tab.id}
       {@const Icon = tab.icon}
-      
+
       <button
         onclick={() => onTabChange(tab.id)}
-        class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative {isActive ? 'bg-[#CCFF00]' : 'bg-white hover:bg-gray-50'} {index !== tabs.length - 1 ? 'border-r-4 border-black' : ''}"
+        class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative {isActive
+          ? 'bg-[#CCFF00]'
+          : 'bg-white hover:bg-gray-50'} {index !== tabs.length - 1
+          ? 'border-r-4 border-black'
+          : ''}"
       >
         <Icon class="w-6 h-6 {isActive ? 'stroke-[2.5px]' : 'stroke-2'}" />
         <span class="text-xs {isActive ? 'font-extrabold' : 'font-semibold'}">

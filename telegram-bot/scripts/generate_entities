@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+echo "==> Generating SeaORM entities"
+
+DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/postgres" \
+  sea-orm-cli generate entity \
+    -o entity/src \
+    --with-copy-enums \
+    --expanded-format
+
+echo "==> Renaming mod.rs to lib.rs"
+
+if [ -f entity/src/mod.rs ]; then
+  mv entity/src/mod.rs entity/src/lib.rs
+  echo "Successfully renamed mod.rs to lib.rs"
+else
+  echo "Warning: mod.rs not found, skipping rename"
+fi
+
+echo "==> Done!"

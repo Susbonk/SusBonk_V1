@@ -1,7 +1,7 @@
 import { api } from './client.js';
 import type { Chat } from '../types/api.js';
 
-// Senior backend response structure
+// API response structure
 interface ChatListResponse {
   chats: Chat[];
 }

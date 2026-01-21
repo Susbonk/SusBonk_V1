@@ -16,6 +16,7 @@ dependencies = [
     "python-multipart>=0.0.6",
     "httpx>=0.25.0",
     "colorama>=0.4.6",
+    "redis>=5.0.0",
 ]
 
 [build-system]

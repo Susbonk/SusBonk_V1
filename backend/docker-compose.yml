@@ -111,17 +111,17 @@ services:
   telegram-bot:
     build:
       context: ../telegram-bot
-      dockerfile: telegram-bot/Dockerfile
+      dockerfile: Dockerfile
     container_name: susbonk-telegram-bot
     env_file:
       - ../.env
     environment:
       - RUST_LOG=info
-      - HEALTH_PORT=8081
-      - INGEST_URL=http://log-ingest:8080
-      - USE_WEBHOOKS=false
-    ports:
-      - "8081:8081"
+      - RUN_MODE=polling
+      - POSTGRES_HOST=pg-database
+      - OS_INGEST_URL=http://log-ingest:8080/ingest
+      - REDIS_URL=redis://redis:6379
+      - GROUP_WORKERS=4
     depends_on:
       log-ingest:
         condition: service_healthy
@@ -133,12 +133,7 @@ services:
       - susbonk-network
       - db-net
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8081/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    # NOTE: Health check disabled - bot doesn't have health endpoint yet
 
   redis:
     image: redis:7.2-alpine
@@ -159,6 +154,33 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    container_name: susbonk-ai-service
+    env_file:
+      - ../.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - AI_BASE_URL=${AI_BASE_URL:-https://openrouter.ai/api/v1}
+      - AI_MODEL=${AI_MODEL:-meta-llama/llama-3.1-8b-instruct}
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_WORKERS=${AI_WORKERS:-4}
+      - AI_TIMEOUT_S=${AI_TIMEOUT_S:-30}
+      - AI_XREAD_COUNT=${AI_XREAD_COUNT:-5}
+      - LOG_LEVEL=info
+      - OS_INGEST_URL=http://log-ingest:8080/ingest
+    depends_on:
+      redis:
+        condition: service_healthy
+      log-ingest:
+        condition: service_healthy
+    networks:
+      - db-net
+      - susbonk-network
     restart: unless-stopped
 
   pg-database:
