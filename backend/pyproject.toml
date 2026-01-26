@@ -2,7 +2,7 @@
 name = "susbonk-api"
 version = "0.1.0"
 description = "SusBonk Dashboard API Backend"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
@@ -11,8 +11,8 @@ dependencies = [
     "orjson>=3.9.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
-    "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
+    "pyjwt>=2.8.0",
+    "argon2-cffi>=23.1.0",
     "python-multipart>=0.0.6",
     "httpx>=0.25.0",
     "colorama>=0.4.6",
