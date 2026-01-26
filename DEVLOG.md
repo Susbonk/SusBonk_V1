@@ -15,7 +15,7 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ### Jan 26, 2026 - 04:12 PM - Development Update
 
-**Commit**: `fc359987`  
+**Commit**: `8808ddcb`  
 **Author**: SusBonk  
 **Changes**: chore: update AI config, refine healthcheck, and setup frontend API proxy  
 
