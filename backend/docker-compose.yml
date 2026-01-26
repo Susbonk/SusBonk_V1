@@ -166,8 +166,8 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - AI_BASE_URL=${AI_BASE_URL:-https://openrouter.ai/api/v1}
-      - AI_MODEL=${AI_MODEL:-meta-llama/llama-3.1-8b-instruct}
-      - AI_API_KEY=${AI_API_KEY}
+      - AI_MODEL=${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+      - AI_API_KEY=${OPENROUTER_API_KEY}
       - AI_WORKERS=${AI_WORKERS:-4}
       - AI_TIMEOUT_S=${AI_TIMEOUT_S:-30}
       - AI_XREAD_COUNT=${AI_XREAD_COUNT:-5}
@@ -269,7 +269,7 @@ services:
       - db-net
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -280,8 +280,6 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    environment:
-      - VITE_API_URL=http://api-backend:8000
     ports:
       - "3000:3000"
     depends_on:

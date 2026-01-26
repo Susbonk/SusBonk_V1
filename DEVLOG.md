@@ -13,6 +13,30 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 26, 2026 - 04:12 PM - Development Update
+
+**Commit**: `fc359987`  
+**Author**: SusBonk  
+**Changes**: chore: update AI config, refine healthcheck, and setup frontend API proxy  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 21, 2026 - 03:23 PM - Development Update
+
+**Commit**: `f5fa8015`  
+**Author**: SusBonk  
+**Changes**: Major refactor: restructure telegram-bot, add AI service, update frontend components  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 20, 2026 - 04:11 PM - Development Update
 
 **Commit**: `7f07afef`  
@@ -361,6 +385,18 @@ Multi-platform support, AI prompt system, user trust tracking. Properly normaliz
 - **Naming prompt**: "Enforce consistent index naming: logs-{service}-{YYYY.MM.DD}"
 - **Architecture prompt**: "Design multi-service logging with shared Rust types"
 - **Debug prompt**: Docker build failures—Kiro identified missing workspace members in COPY commands
+
+### Jan 21, 2026 - 03:23 PM - Push to master
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+f5fa801 Major refactor: restructure telegram-bot, add AI service, update frontend components
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
 
 ### Jan 18, 2026 - 02:33 PM - Push to master
 
