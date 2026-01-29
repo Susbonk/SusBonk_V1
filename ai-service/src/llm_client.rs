@@ -111,18 +111,11 @@ impl LlmClient {
         extra: Option<JsonValue>,
     ) -> Result<String, RuntimeError> {
         let base = Self::normalize_url(&self.base_url);
-        let mut url = if base.ends_with("/api/chat") {
+        let url = if base.ends_with("/api/chat") {
             base
         } else {
             format!("{base}/api/chat")
         };
-
-        // если в докере — localhost -> ollama
-        if std::path::Path::new("/.dockerenv").exists() {
-            if url.contains("localhost") || url.contains("127.0.0.1") {
-                url = url.replace("localhost", "ollama").replace("127.0.0.1", "ollama");
-            }
-        }
 
         let mut payload = json!({
             "model": self.model,

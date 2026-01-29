@@ -14,10 +14,17 @@ Stateless LLM analysis service for SusBonk bot. Consumes messages from Redis str
 Environment variables:
 
 - `REDIS_URL` - Redis connection URL (default: `redis://localhost:6379`)
-- `OPENROUTER_API_KEY` - OpenRouter API key (required)
-- `OPENROUTER_MODEL` - Model to use (default: `openai/gpt-4o-mini`)
-- `AI_WORKER_COUNT` - Number of concurrent workers (default: 4)
-- `AI_RATE_LIMIT` - API calls per minute (default: 60)
+- `TASKS_STREAM` - Tasks stream name (default: `ai:tasks`)
+- `RESULTS_STREAM` - Results stream name (default: `ai:results`)
+- `CONSUMER_GROUP` - Consumer group name (default: `ai-workers`)
+- `AI_BASE_URL` - LLM API base URL (default: `http://localhost:11434`)
+- `AI_MODEL` - Model to use (default: `llama3`)
+- `AI_API_KEY` - API key for OpenAI-compatible APIs (optional)
+- `AI_WORKERS` - Number of concurrent workers (default: 4)
+- `AI_TIMEOUT_S` - API timeout in seconds (default: 30)
+- `AI_XREAD_COUNT` - Messages to read per batch (default: 5)
+- `AI_RESULTS_MAXLEN` - Max results stream length (optional, uses MAXLEN ~)
+- `OS_INGEST_URL` - OpenSearch ingest URL for structured logging (optional)
 - `RUST_LOG` - Log level (default: `info`)
 
 ## Stream Format

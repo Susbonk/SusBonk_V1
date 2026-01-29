@@ -11,11 +11,6 @@ use tokio::{signal, sync::watch, task::JoinSet};
 use tracing::{error, info};
 use tracing_subscriber::prelude::*;
 
-// TODO: Move to env to read it from there on the service sending messages
-const TASKS_STREAM: &str = "ai:tasks";
-const RESULTS_STREAM: &str = "ai:results";
-const GROUP: &str = "ai-workers";
-
 const SERVICE_NAME: &str = "ai-workers";
 
 #[derive(Clone)]
@@ -34,6 +29,11 @@ struct Settings {
     ai_timeout_s: u64,
     xread_count: usize,
     result_stream_maxlen: Option<usize>,
+    
+    // Stream names
+    tasks_stream: String,
+    results_stream: String,
+    consumer_group: String,
 
     // Logging
     log_level: String,
@@ -78,6 +78,10 @@ impl Settings {
             ai_timeout_s: env_u64("AI_TIMEOUT_S", 30),
             xread_count: env_usize("AI_XREAD_COUNT", 5),
             result_stream_maxlen: env_opt_usize("AI_RESULTS_MAXLEN"),
+            
+            tasks_stream: env_string("TASKS_STREAM", "ai:tasks"),
+            results_stream: env_string("RESULTS_STREAM", "ai:results"),
+            consumer_group: env_string("CONSUMER_GROUP", "ai-workers"),
 
             log_level: env_string("LOG_LEVEL", "info"),
         }
@@ -132,8 +136,8 @@ async fn main() -> anyhow::Result<()> {
     info!("starting {SERVICE_NAME}…");
 
     let redis_client = redis::Client::open(cfg.redis_url.clone())?;
-    ensure_group(redis_client.clone(), TASKS_STREAM, GROUP).await?;
-    let _ = ensure_group(redis_client.clone(), RESULTS_STREAM, "result-readers").await;
+    ensure_group(redis_client.clone(), &cfg.tasks_stream, &cfg.consumer_group).await?;
+    let _ = ensure_group(redis_client.clone(), &cfg.results_stream, "result-readers").await;
 
     let http = reqwest::Client::builder()
         .timeout(Duration::from_secs(cfg.ai_timeout_s))
@@ -236,11 +240,11 @@ async fn worker_loop(
         };
 
     let opts_new = StreamReadOptions::default()
-        .group(GROUP, &consumer)
+        .group(&cfg.consumer_group, &consumer)
         .count(cfg.xread_count);
 
     let opts_pending = StreamReadOptions::default()
-        .group(GROUP, &consumer)
+        .group(&cfg.consumer_group, &consumer)
         .count(cfg.xread_count);
 
     let mut tick: u64 = 0;
@@ -254,7 +258,7 @@ async fn worker_loop(
         tick = tick.wrapping_add(1);
 
         let mut reply: StreamReadReply =
-            match conn.xread_options(&[TASKS_STREAM], &[">"], &opts_new).await {
+            match conn.xread_options(&[cfg.tasks_stream.as_str()], &[">"], &opts_new).await {
                 Ok(r) => r,
                 Err(e) => {
                     error!("[{consumer}] xreadgroup error: {e}");
@@ -265,7 +269,7 @@ async fn worker_loop(
 
         if reply.keys.is_empty() && (tick % 10 == 0) {
             if let Ok(rp) = conn
-                .xread_options(&[TASKS_STREAM], &["0"], &opts_pending)
+                .xread_options(&[cfg.tasks_stream.as_str()], &["0"], &opts_pending)
                 .await
             {
                 reply = rp;
@@ -308,7 +312,7 @@ async fn worker_loop(
 
                 if job_id.trim().is_empty() {
                     error!("[{consumer}] missing job_id, msg_id={msg_id}");
-                    ack_del(&mut conn, TASKS_STREAM, GROUP, &msg_id).await;
+                    ack_del(&mut conn, &cfg.tasks_stream, &cfg.consumer_group, &msg_id).await;
                     continue;
                 }
 
@@ -334,7 +338,7 @@ async fn worker_loop(
                         )
                         .await;
 
-                        ack_del(&mut conn, TASKS_STREAM, GROUP, &msg_id).await;
+                        ack_del(&mut conn, &cfg.tasks_stream, &cfg.consumer_group, &msg_id).await;
                         info!("[{consumer}] done job_id={job_id} msg_id={msg_id}");
                     }
                     Err(e) => {
@@ -349,7 +353,7 @@ async fn worker_loop(
                         )
                         .await;
 
-                        ack_del(&mut conn, TASKS_STREAM, GROUP, &msg_id).await;
+                        ack_del(&mut conn, &cfg.tasks_stream, &cfg.consumer_group, &msg_id).await;
                         error!("[{consumer}] failed job_id={job_id}: {e}");
                     }
                 }
@@ -388,7 +392,7 @@ async fn write_result(
     elapsed_ms: &str,
 ) -> redis::RedisResult<String> {
     let mut cmd = redis::cmd("XADD");
-    cmd.arg(RESULTS_STREAM);
+    cmd.arg(&cfg.results_stream);
 
     if let Some(n) = cfg.result_stream_maxlen {
         cmd.arg("MAXLEN").arg("~").arg(n);

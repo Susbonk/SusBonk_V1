@@ -13,6 +13,33 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 02:37 PM - Development Update
+
+**Commit**: `723d0b7f`  
+**Author**: SusBonk  
+**Changes**: feat: add Cargo.lock and example usage scripts for AI service
+
+Task 3.1: Add Cargo.lock for deterministic builds
+- Generate and commit Cargo.lock (216 packages)
+- Remove Cargo.lock from .gitignore
+- Update Dockerfile to use --locked flag
+- Add dependency management documentation
+
+Task 3.2: Add example usage scripts for Redis-stream workflow
+- submit_task.py: Submit tasks to AI service
+- tail_results.py: Monitor results stream
+- demo.py: End-to-end demo (submit + wait)
+- Comprehensive README with usage examples
+- All scripts support environment variables and CLI args
+
+Developers can now validate AI service in isolation without running the bot.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 01:13 PM - Development Update
 
 **Commit**: `34b48f7c`  
@@ -502,6 +529,18 @@ GitHub's push protection caught it and refused. Had to run `git filter-branch` t
 **Author**: SusBonk  
 **Commits Being Pushed**:
 34b48f7 chore: archive broken frontend, preserve legacy code
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 29, 2026 - 02:38 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+723d0b7 feat: add Cargo.lock and example usage scripts for AI service
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
