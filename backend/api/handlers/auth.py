@@ -102,8 +102,7 @@ async def connect_telegram(
             status="already_connected",
             message="You are already connected to a Telegram account",
         )
-    # TODO: Move to settings and env
-    bot_username = "myDemoSuperDuperPuperMega_bot"
+    bot_username = settings.BOT_USERNAME
     bot_link = f"Sent `/start {current_user.id}` to https://t.me/{bot_username}"  # noqa: E501
 
     return TelegramConnectResponse(

@@ -1,25 +1,16 @@
-#!/usr/bin/env python3
-"""Send test WARN/ERROR logs to ingestd using Python requests"""
-
-import requests
 from datetime import datetime, timezone
 
-INGEST_URL = "http://localhost:8080/ingest"
+import requests
 
-def send_log(level: str, message: str, trace_id: str = None):
-    log_event = {
-        "@timestamp": datetime.now(timezone.utc).isoformat(),
-        "service": {"name": "python-test"},
-        "log": {"level": level},
-        "message": message
-    }
-    if trace_id:
-        log_event["trace"] = {"id": trace_id}
-    
-    response = requests.post(INGEST_URL, json=[log_event])
-    print(f"[{level}] {message} -> {response.status_code}")
+events = [
+    {
+        "@timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # noqa: E501
+        "service": {"name": "py-worker"},
+        "log": {"level": "WARN"},
+        "message": "Warning from python",
+        "fields": {"job_id": 123, "step": 3},
+    },
+]
 
-if __name__ == "__main__":
-    send_log("WARN", "High memory usage detected")
-    send_log("ERROR", "Database connection failed", trace_id="err-001")
-    send_log("ERROR", "Failed to process message", trace_id="err-002")
+r = requests.post("http://localhost:8080/ingest", json=events, timeout=5)
+print(r.status_code, r.text)

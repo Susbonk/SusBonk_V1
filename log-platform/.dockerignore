@@ -1,0 +1,11 @@
+# Git
+.git
+.gitignore
+
+# Editor / OS junk
+.DS_Store
+.idea
+.vscode
+
+# Logs
+*.log

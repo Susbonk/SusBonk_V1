@@ -1,25 +1,37 @@
-#!/usr/bin/env python3
-"""Send test INFO logs to ingestd using Python requests"""
-
-import requests
 from datetime import datetime, timezone
 
-INGEST_URL = "http://localhost:8080/ingest"
+import requests
 
-def send_log(level: str, message: str, trace_id: str = None):
-    log_event = {
-        "@timestamp": datetime.now(timezone.utc).isoformat(),
-        "service": {"name": "python-test"},
-        "log": {"level": level},
-        "message": message
-    }
-    if trace_id:
-        log_event["trace"] = {"id": trace_id}
-    
-    response = requests.post(INGEST_URL, json=[log_event])
-    print(f"[{level}] {message} -> {response.status_code}")
+events = [
+    {
+        "@timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # noqa: E501
+        "service": {"name": "py-worker"},
+        "log": {"level": "INFO"},
+        "message": "step 1",
+        "fields": {"job_id": 123, "step": 1},
+    },
+    {
+        "@timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # noqa: E501
+        "service": {"name": "py-worker"},
+        "log": {"level": "WARN"},
+        "message": "step 2",
+        "fields": {"job_id": 123, "step": 2},
+    },
+    {
+        "@timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # noqa: E501
+        "service": {"name": "py-worker"},
+        "log": {"level": "ERROR"},
+        "message": "step 3",
+        "fields": {"job_id": 123, "step": 3},
+    },
+    {
+        "@timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # noqa: E501
+        "service": {"name": "py-worker"},
+        "log": {"level": "ERROR"},
+        "message": "step 4",
+        "fields": {"job_id": 123, "step": 3},
+    },
+]
 
-if __name__ == "__main__":
-    send_log("INFO", "Application started")
-    send_log("INFO", "Processing request", trace_id="req-001")
-    send_log("INFO", "Request completed successfully")
+r = requests.post("http://localhost:8080/ingest", json=events, timeout=5)
+print(r.status_code, r.text)

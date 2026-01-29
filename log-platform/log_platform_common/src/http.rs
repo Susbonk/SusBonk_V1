@@ -1,9 +1,11 @@
 use reqwest::Client;
 use std::time::Duration;
 
-pub fn create_client() -> Client {
+/// Create a shared HTTP client with common configuration
+pub fn client(timeout: Duration) -> Client {
     Client::builder()
-        .timeout(Duration::from_secs(30))
+        .timeout(timeout)
+        .user_agent("log-platform-client/1.0")
         .build()
-        .unwrap_or_else(|_| Client::new())
+        .expect("Failed to build HTTP client")
 }

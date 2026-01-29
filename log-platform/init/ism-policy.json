@@ -1,27 +1,21 @@
 {
   "policy": {
-    "description": "Delete logs after 7 days",
-    "default_state": "active",
+    "description": "Delete log indices older than 7 days",
+    "default_state": "hot",
     "states": [
       {
-        "name": "active",
+        "name": "hot",
         "actions": [],
         "transitions": [
           {
             "state_name": "delete",
-            "conditions": {
-              "min_index_age": "7d"
-            }
+            "conditions": { "min_index_age": "7d" }
           }
         ]
       },
       {
         "name": "delete",
-        "actions": [
-          {
-            "delete": {}
-          }
-        ],
+        "actions": [{ "delete": {} }],
         "transitions": []
       }
     ]

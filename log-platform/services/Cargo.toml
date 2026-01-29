@@ -1,0 +1,26 @@
+[package]
+name = "log-platform-service"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+lettre = { workspace = true }
+log_platform_common = { path = "../log_platform_common" }
+log_platform_domain = { path = "../log_platform_service" }
+
+[[bin]]
+name = "ingestd"
+path = "src/ingestd.rs"
+
+[[bin]]
+name = "alertd"
+path = "src/alertd.rs"

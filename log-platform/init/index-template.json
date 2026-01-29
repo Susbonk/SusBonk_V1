@@ -4,29 +4,17 @@
     "settings": {
       "number_of_shards": 1,
       "number_of_replicas": 0,
-      "index.plugins.index_state_management.policy_id": "logs-retention"
+      "opendistro.index_state_management.policy_id": "logs-default-ism"
     },
     "mappings": {
       "properties": {
         "@timestamp": { "type": "date" },
-        "service": {
-          "properties": {
-            "name": { "type": "keyword" }
-          }
-        },
-        "log": {
-          "properties": {
-            "level": { "type": "keyword" }
-          }
-        },
+        "service": { "properties": { "name": { "type": "keyword" } } },
+        "log": { "properties": { "level": { "type": "keyword" } } },
         "message": { "type": "text" },
-        "trace": {
-          "properties": {
-            "id": { "type": "keyword" }
-          }
-        },
-        "labels": { "type": "object" },
-        "fields": { "type": "object" }
+        "trace": { "properties": { "id": { "type": "keyword" } } },
+        "labels": { "type": "object", "enabled": true },
+        "fields": { "type": "object", "enabled": true }
       }
     }
   }

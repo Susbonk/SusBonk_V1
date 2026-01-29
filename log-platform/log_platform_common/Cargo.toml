@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-reqwest = { workspace = true }
-tracing = { workspace = true }
-anyhow = { workspace = true }
-chrono = { workspace = true }
-uuid = { workspace = true }
-async-trait = "0.1"
-lettre = { version = "0.11", features = ["tokio1-native-tls", "builder", "smtp-transport"] }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+anyhow.workspace = true
+lettre.workspace = true
+tokio.workspace = true
+log_platform_domain = { path = "../log_platform_service" }

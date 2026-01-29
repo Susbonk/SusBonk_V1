@@ -1,125 +1,195 @@
-use tracing::{info, error};
-use lettre::{
-    message::header::ContentType,
-    transport::smtp::authentication::Credentials,
-    AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
-};
+use log_platform_domain::Alert;
 use serde::{Deserialize, Serialize};
+use std::env;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Alert {
-    pub subject: String,
-    pub message: String,
-    pub level: AlertLevel,
-    pub source: String,
-}
+use lettre::message::Mailbox;
+use lettre::transport::smtp::authentication::{Credentials, Mechanism};
+use lettre::{Message, SmtpTransport, Transport};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum AlertLevel {
-    Info,
-    Warning,
-    Error,
-    Critical,
-}
+use tracing::{error, info, warn};
 
-#[async_trait::async_trait]
+/// Trait for different notification mechanisms
 pub trait Notifier: Send + Sync {
-    async fn send(&self, alert: &Alert) -> anyhow::Result<()>;
+    fn notify(&self, alert: Alert);
 }
 
-pub struct LogNotifier;
+/// A notifier that prints alerts to stdout
+pub struct StdoutNotifier;
 
-#[async_trait::async_trait]
-impl Notifier for LogNotifier {
-    async fn send(&self, alert: &Alert) -> anyhow::Result<()> {
-        info!("ALERT [{:?}] {}: {}", alert.level, alert.subject, alert.message);
-        Ok(())
+impl Notifier for StdoutNotifier {
+    fn notify(&self, alert: Alert) {
+        println!("[{}][{}] {}", alert.severity, alert.kind, alert.message);
     }
 }
 
+/// A notifier that sends alert emails
+#[derive(Clone)]
 pub struct EmailNotifier {
-    smtp_host: String,
-    smtp_port: u16,
-    from_email: String,
-    to_email: String,
-    username: Option<String>,
-    password: Option<String>,
+    pub cfg: EmailCfg,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EmailCfg {
+    pub enabled: bool,
+    pub smtp_server: String,
+    pub smtp_port: u16,
+    pub smtp_user: String,
+    pub smtp_password: String,
+    pub to_list: Vec<String>,
+    pub from: String,
 }
 
 impl EmailNotifier {
-    pub fn new(smtp_host: String, smtp_port: u16, from_email: String, to_email: String, username: Option<String>, password: Option<String>) -> Self {
-        Self {
-            smtp_host,
-            smtp_port,
-            from_email,
-            to_email,
-            username,
-            password,
-        }
+    pub fn new(cfg: EmailCfg) -> Self {
+        Self { cfg }
     }
-}
 
-#[async_trait::async_trait]
-impl Notifier for EmailNotifier {
-    async fn send(&self, alert: &Alert) -> anyhow::Result<()> {
-        let email = Message::builder()
-            .from(self.from_email.parse()?)
-            .to(self.to_email.parse()?)
-            .subject(&alert.subject)
-            .header(ContentType::TEXT_PLAIN)
-            .body(format!("[{:?}] {}\n\nSource: {}", alert.level, alert.message, alert.source))?;
+    pub fn from_env() -> Result<Self, anyhow::Error> {
+        let to_raw = env::var("ALERT_EMAIL_TO").unwrap_or_default();
+        let to_list = crate::parse::parse_email_list(&to_raw);
 
-        let mailer = if let (Some(user), Some(pass)) = (&self.username, &self.password) {
-            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.smtp_host)?
-                .port(self.smtp_port)
-                .credentials(Credentials::new(user.clone(), pass.clone()))
+        let from = env::var("ALERT_EMAIL_FROM")
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| env::var("SMTP_USER").unwrap_or_default());
+
+        let email_cfg = EmailCfg {
+            enabled: crate::env::env_bool("EMAIL_ENABLED", false),
+            smtp_server: env::var("SMTP_SERVER").unwrap_or_default(),
+            smtp_port: crate::env::env_parse("SMTP_PORT", 587u16),
+            smtp_user: env::var("SMTP_USER").unwrap_or_default(),
+            smtp_password: env::var("SMTP_PASSWORD").unwrap_or_default(),
+            to_list,
+            from,
+        };
+
+        if email_cfg.enabled {
+            if email_cfg.smtp_server.is_empty()
+                || email_cfg.smtp_user.is_empty()
+                || email_cfg.smtp_password.is_empty()
+                || email_cfg.to_list.is_empty()
+            {
+                return Err(anyhow::anyhow!(
+                    "EMAIL_ENABLED=1 but SMTP/EMAIL env vars are incomplete"
+                ));
+            }
+        }
+
+        Ok(Self::new(email_cfg))
+    }
+
+    fn send_sync(&self, subject: &str, body: &str) -> anyhow::Result<()> {
+        let from: Mailbox = self.cfg.from.parse()?;
+
+        let creds = Credentials::new(self.cfg.smtp_user.clone(), self.cfg.smtp_password.clone());
+
+        let mailer = if self.cfg.smtp_port == 465 {
+            use lettre::transport::smtp::client::{Tls, TlsParameters};
+            let tls_parameters = TlsParameters::new(self.cfg.smtp_server.clone())?;
+            SmtpTransport::builder_dangerous(&self.cfg.smtp_server)
+                .port(self.cfg.smtp_port)
+                .tls(Tls::Wrapper(tls_parameters))
+                .credentials(creds)
+                .authentication(vec![Mechanism::Login])
                 .build()
         } else {
-            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&self.smtp_host)
-                .port(self.smtp_port)
+            SmtpTransport::relay(&self.cfg.smtp_server)?
+                .port(self.cfg.smtp_port)
+                .credentials(creds)
+                .authentication(vec![Mechanism::Login])
                 .build()
         };
 
-        mailer.send(email).await?;
-        info!("Email sent to {}: {}", self.to_email, alert.subject);
+        if self.cfg.to_list.is_empty() {
+            anyhow::bail!("no recipients in ALERT_EMAIL_TO");
+        }
+
+        let mut ok = 0usize;
+        let mut fail = 0usize;
+        let mut last_err: Option<anyhow::Error> = None;
+
+        for to_s in &self.cfg.to_list {
+            let to: Mailbox = match to_s.parse() {
+                Ok(v) => v,
+                Err(e) => {
+                    fail += 1;
+                    last_err = Some(e.into());
+                    continue;
+                }
+            };
+
+            let email = Message::builder()
+                .from(from.clone())
+                .to(to)
+                .subject(subject)
+                .body(body.to_string())?;
+
+            match mailer.send(&email) {
+                Ok(_) => ok += 1,
+                Err(e) => {
+                    fail += 1;
+                    last_err = Some(e.into());
+                }
+            }
+        }
+
+        if ok == 0 {
+            return Err(
+                last_err.unwrap_or_else(|| anyhow::anyhow!("failed to send to all recipients"))
+            );
+        }
+
+        if fail > 0 {
+            warn!("email partially sent: ok={}, fail={}", ok, fail);
+        }
+
         Ok(())
     }
 }
 
+impl Notifier for EmailNotifier {
+    fn notify(&self, alert: Alert) {
+        if !self.cfg.enabled {
+            warn!("email notification disabled");
+            return;
+        }
+
+        let subject = format!("[{}][{}] OpenSearch Alert", alert.severity, alert.kind);
+        let body = alert.message.clone();
+        let me = self.clone();
+
+        // IMPORTANT: do not block alert loop
+        tokio::task::spawn_blocking(move || {
+            info!("attempting to send alert email: {}", subject);
+            info!(
+                "SMTP server: {}, port: {}, user: {}",
+                me.cfg.smtp_server, me.cfg.smtp_port, me.cfg.smtp_user
+            );
+
+            match me.send_sync(&subject, &body) {
+                Ok(_) => info!("email sent successfully"),
+                Err(e) => error!("email send failed: {e}"),
+            }
+        });
+    }
+}
+
+/// A notifier that combines multiple notifiers
 pub struct MultiNotifier {
-    notifiers: Vec<Box<dyn Notifier>>,
+    pub sinks: Vec<Box<dyn Notifier>>,
 }
 
 impl MultiNotifier {
-    pub fn new() -> Self {
-        Self { notifiers: Vec::new() }
-    }
-
-    pub fn add(mut self, notifier: Box<dyn Notifier>) -> Self {
-        self.notifiers.push(notifier);
-        self
-    }
-
-    pub async fn send(&self, alert: &Alert) {
-        for notifier in &self.notifiers {
-            if let Err(e) = notifier.send(alert).await {
-                error!("Notification failed: {}", e);
-            }
-        }
-    }
-
-    pub async fn send_simple(&self, subject: &str, message: &str, level: AlertLevel) {
-        self.send(&Alert {
-            subject: subject.to_string(),
-            message: message.to_string(),
-            level,
-            source: "alertd".to_string(),
-        }).await;
+    pub fn new(sinks: Vec<Box<dyn Notifier>>) -> Self {
+        Self { sinks }
     }
 }
 
-impl Default for MultiNotifier {
-    fn default() -> Self {
-        Self::new()
+impl Notifier for MultiNotifier {
+    fn notify(&self, alert: Alert) {
+        for s in &self.sinks {
+            s.notify(alert.clone());
+        }
     }
 }

@@ -1,24 +1,24 @@
-#!/bin/bash
-set -e
+#!/bin/sh
+set -eu
 
-OS_URL="${OPENSEARCH_URL:-http://opensearch:9200}"
-OS_USER="${OPENSEARCH_USER:-admin}"
-OS_PASS="${OPENSEARCH_PASSWORD:-Admin123!}"
+OS="${OS_URL:-http://opensearch:9200}"
 
-echo "Waiting for OpenSearch at $OS_URL..."
-until curl -k -u "$OS_USER:$OS_PASS" "$OS_URL/_cluster/health" &>/dev/null; do
-  sleep 2
+echo "[init] Waiting for OpenSearch..."
+until curl -s "$OS" >/dev/null; do
+  sleep 1
 done
-echo "OpenSearch ready"
+echo "[init] OpenSearch is up: $OS"
 
-echo "Applying ISM policy..."
-curl -k -u "$OS_USER:$OS_PASS" -X PUT "$OS_URL/_plugins/_ism/policies/logs-retention" \
+echo "[init] Apply ISM policy logs-default-ism..."
+curl -s -X PUT "$OS/_plugins/_ism/policies/logs-default-ism" \
   -H "Content-Type: application/json" \
-  -d @/init/ism-policy.json
+  --data-binary @/init/ism-policy.json >/dev/null
+echo "[init] ISM policy applied"
 
-echo "Applying index template..."
-curl -k -u "$OS_USER:$OS_PASS" -X PUT "$OS_URL/_index_template/logs-template" \
+echo "[init] Apply index template logs-default-template..."
+curl -s -X PUT "$OS/_index_template/logs-default-template" \
   -H "Content-Type: application/json" \
-  -d @/init/index-template.json
+  --data-binary @/init/index-template.json >/dev/null
+echo "[init] Index template applied"
 
-echo "OpenSearch initialization complete"
+echo "[init] Done."

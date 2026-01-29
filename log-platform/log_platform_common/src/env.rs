@@ -1,102 +1,62 @@
 use std::env;
+use std::net::SocketAddr;
 use std::str::FromStr;
+use std::time::Duration;
 
-pub fn get_env(key: &str, default: &str) -> String {
-    env::var(key).unwrap_or_else(|_| default.to_string())
+/// Get environment variable as string with a default value
+pub fn env_string(name: &str, default: &str) -> String {
+    env::var(name).unwrap_or_else(|_| default.to_string())
 }
 
-pub fn env_parse<T: FromStr>(key: &str, default: T) -> T {
-    env::var(key)
+/// Get optional environment variable as string (None if not set)
+pub fn env_opt_string(name: &str) -> Option<String> {
+    env::var(name).ok().filter(|v| !v.is_empty())
+}
+
+/// Parse environment variable using FromStr trait with a default value
+pub fn env_parse<T>(name: &str, default: T) -> T
+where
+    T: FromStr + std::fmt::Display,
+{
+    env::var(name)
         .ok()
         .and_then(|v| v.parse().ok())
+        .unwrap_or_else(|| {
+            tracing::debug!(
+                "Environment variable {} not set or invalid, using default: {}",
+                name,
+                default
+            );
+            default
+        })
+}
+
+/// Get environment variable as boolean with a default value
+pub fn env_bool(name: &str, default: bool) -> bool {
+    env::var(name)
+        .ok()
+        .map(|v| matches!(v.as_str(), "1" | "true" | "yes" | "on"))
         .unwrap_or(default)
 }
 
-pub fn env_bool(key: &str, default: bool) -> bool {
-    env::var(key)
-        .map(|v| matches!(v.to_lowercase().as_str(), "true" | "1" | "yes"))
-        .unwrap_or(default)
+/// Get environment variable as duration in seconds with a default value
+pub fn env_duration_secs(name: &str, default_secs: u64) -> Duration {
+    let secs = env_parse(name, default_secs);
+    Duration::from_secs(secs)
 }
 
-pub fn get_opensearch_url() -> String {
-    get_env("OS_URL", "http://localhost:9200")
-}
-
-pub fn get_ingest_url() -> String {
-    get_env("OS_INGEST_URL", "http://localhost:8080")
-}
-
-pub fn get_email_enabled() -> bool {
-    env_bool("EMAIL_ENABLED", false)
-}
-
-pub fn get_port() -> u16 {
-    env_parse("PORT", 8080)
-}
-
-pub fn get_smtp_host() -> String {
-    get_env("SMTP_SERVER", "localhost")
-}
-
-pub fn get_smtp_port() -> u16 {
-    env_parse("SMTP_PORT", 587)
-}
-
-pub fn get_smtp_user() -> Option<String> {
-    env::var("SMTP_USER").ok().filter(|s| !s.is_empty())
-}
-
-pub fn get_smtp_password() -> Option<String> {
-    env::var("SMTP_PASSWORD").ok().filter(|s| !s.is_empty())
-}
-
-pub fn get_alert_email_from() -> String {
-    get_env("ALERT_EMAIL_FROM", "alerts@localhost")
-}
-
-pub fn get_alert_email_to() -> String {
-    get_env("ALERT_EMAIL_TO", "admin@example.com")
-}
-
-#[derive(Debug, Clone)]
-pub struct Cfg {
-    pub opensearch_url: String,
-    pub ingest_url: String,
-    pub email_enabled: bool,
-    pub smtp_host: String,
-    pub smtp_port: u16,
-    pub smtp_user: Option<String>,
-    pub smtp_password: Option<String>,
-    pub alert_email_from: String,
-    pub alert_email_to: String,
-    pub disk_threshold_gb: f64,
-    pub warn_threshold: usize,
-    pub error_threshold: usize,
-    pub check_interval_secs: u64,
-}
-
-impl Default for Cfg {
-    fn default() -> Self {
-        Self::from_env()
-    }
-}
-
-impl Cfg {
-    pub fn from_env() -> Self {
-        Self {
-            opensearch_url: get_opensearch_url(),
-            ingest_url: get_ingest_url(),
-            email_enabled: get_email_enabled(),
-            smtp_host: get_smtp_host(),
-            smtp_port: get_smtp_port(),
-            smtp_user: get_smtp_user(),
-            smtp_password: get_smtp_password(),
-            alert_email_from: get_alert_email_from(),
-            alert_email_to: get_alert_email_to(),
-            disk_threshold_gb: env_parse("DISK_THRESHOLD_GB", 50.0),
-            warn_threshold: env_parse("WARNING_THRESHOLD", 100),
-            error_threshold: env_parse("ERROR_THRESHOLD", 50),
-            check_interval_secs: env_parse("CHECK_INTERVAL_SECS", 60),
-        }
-    }
+/// Get environment variable as SocketAddr with a default value
+pub fn env_socketaddr(name: &str, default: &str) -> SocketAddr {
+    env::var(name)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or_else(|| {
+            let addr = default.parse().expect("Invalid default socket address");
+            tracing::debug!(
+                "Environment variable {} not set, using default: {}",
+                name,
+                default
+            );
+            addr
+        })
 }

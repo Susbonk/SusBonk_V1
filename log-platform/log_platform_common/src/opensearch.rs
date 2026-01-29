@@ -1,121 +1,103 @@
+use anyhow::Result;
+use chrono::{DateTime, Utc};
 use reqwest::Client;
-use serde::Deserialize;
 use serde_json::json;
-use tracing::warn;
-use crate::LogEvent;
 
-#[derive(Debug, Deserialize)]
-struct BulkResponse {
-    errors: bool,
-    items: Vec<BulkItem>,
+use log_platform_domain::LogEvent;
+
+pub fn index_name(service: &str, ts: DateTime<Utc>) -> String {
+    let index = format!("logs-{}-{}", service, ts.format("%Y.%m.%d"));
+    tracing::trace!(
+        "computed index name: {} for service {} at {}",
+        index,
+        service,
+        ts
+    );
+    index
 }
 
-#[derive(Debug, Deserialize)]
-struct BulkItem {
-    index: Option<BulkItemResult>,
+pub fn to_bulk_ndjson(events: &[LogEvent]) -> Result<(String, usize)> {
+    let mut out = String::new();
+    for ev in events {
+        let ts = ev.timestamp.unwrap_or_else(Utc::now);
+        let service = ev.service_name_or_default();
+        let idx = index_name(&service, ts);
+
+        // action line
+        out.push_str(&serde_json::to_string(&json!({"index": {"_index": idx}}))?);
+        out.push('\n');
+
+        // source line
+        out.push_str(&serde_json::to_string(ev)?);
+        out.push('\n');
+    }
+    tracing::debug!("converted {} events to bulk NDJSON format", events.len());
+    Ok((out, events.len()))
 }
 
-#[derive(Debug, Deserialize)]
-struct BulkItemResult {
-    status: u16,
-    error: Option<BulkError>,
+/// A wrapper struct to encapsulate OpenSearch operations
+pub struct OpenSearch {
+    pub base_url: String,
+    pub http: Client,
 }
 
-#[derive(Debug, Deserialize)]
-struct BulkError {
-    #[serde(rename = "type")]
-    error_type: String,
-    reason: String,
-}
-
-pub struct OpenSearchClient {
-    client: Client,
-    base_url: String,
-}
-
-impl OpenSearchClient {
-    pub fn new(base_url: String) -> Self {
-        Self {
-            client: crate::http::create_client(),
-            base_url,
-        }
+impl OpenSearch {
+    pub fn new(base_url: String, http: Client) -> Self {
+        Self { base_url, http }
     }
 
-    pub fn base_url(&self) -> &str {
-        &self.base_url
-    }
+    pub async fn bulk_ingest(&self, events: &[LogEvent]) -> Result<usize> {
+        let (body, count) = to_bulk_ndjson(events)?;
+        let url = format!("{}/_bulk", self.base_url.trim_end_matches('/'));
 
-    pub async fn bulk_index(&self, events: Vec<LogEvent>) -> anyhow::Result<usize> {
-        let bulk_body = to_bulk_ndjson(&events)?;
-
-        let response = self.client
-            .post(&format!("{}/_bulk", self.base_url))
+        let resp = self
+            .http
+            .post(&url)
             .header("Content-Type", "application/x-ndjson")
-            .body(bulk_body)
+            .body(body)
             .send()
             .await?;
 
-        if !response.status().is_success() {
-            return Err(anyhow::anyhow!("Bulk index failed: {}", response.status()));
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+
+        if !status.is_success() {
+            anyhow::bail!("opensearch bulk request failed: {} - {}", status, text);
         }
 
-        let result: BulkResponse = response.json().await?;
-        
-        if result.errors {
-            let mut failed = 0;
-            for item in &result.items {
-                if let Some(idx) = &item.index {
-                    if idx.status >= 400 {
-                        failed += 1;
-                        if let Some(err) = &idx.error {
-                            warn!("Bulk index error: {} - {}", err.error_type, err.reason);
-                        }
-                    }
-                }
-            }
-            if failed > 0 {
-                return Err(anyhow::anyhow!("{} of {} documents failed to index", failed, events.len()));
-            }
+        let v: serde_json::Value = serde_json::from_str(&text)?;
+        if v.get("errors").and_then(|x| x.as_bool()) == Some(true) {
+            anyhow::bail!("opensearch bulk returned errors: {}", v);
         }
 
-        Ok(events.len())
+        Ok(count)
     }
 
-    pub async fn search(&self, index: &str, query: serde_json::Value) -> anyhow::Result<serde_json::Value> {
-        let response = self.client
-            .post(&format!("{}/{}/_search", self.base_url, index))
-            .json(&query)
+    pub async fn search(
+        &self,
+        index_pattern: &str,
+        query: &serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        let url = format!(
+            "{}/{}/_search",
+            self.base_url.trim_end_matches('/'),
+            index_pattern
+        );
+
+        let resp = self
+            .http
+            .post(&url)
+            .header("Content-Type", "application/json")
+            .json(query)
             .send()
             .await?;
 
-        Ok(response.json().await?)
-    }
+        let status = resp.status();
+        if !status.is_success() {
+            anyhow::bail!("opensearch search request failed: {}", status);
+        }
 
-    pub async fn get_nodes_stats_fs(&self) -> anyhow::Result<serde_json::Value> {
-        let response = self.client
-            .get(&format!("{}/_nodes/stats/fs", self.base_url))
-            .send()
-            .await?;
-
-        Ok(response.json().await?)
+        let response: serde_json::Value = resp.json().await?;
+        Ok(response)
     }
 }
-
-pub fn to_bulk_ndjson(events: &[LogEvent]) -> anyhow::Result<String> {
-    let mut bulk_body = String::new();
-    
-    for event in events {
-        let timestamp = event.timestamp.unwrap_or_else(chrono::Utc::now);
-        let service_name = event.service_name_or_default();
-        let index = format!("logs-{}-{}", service_name, timestamp.format("%Y.%m.%d"));
-        
-        let action = json!({"index": {"_index": index}});
-        bulk_body.push_str(&serde_json::to_string(&action)?);
-        bulk_body.push('\n');
-        bulk_body.push_str(&serde_json::to_string(&event)?);
-        bulk_body.push('\n');
-    }
-
-    Ok(bulk_body)
-}
-

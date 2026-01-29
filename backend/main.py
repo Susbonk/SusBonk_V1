@@ -14,7 +14,6 @@ from logger import (
     get_logger,
 )
 from api import router
-from settings import settings
 
 
 log = get_logger(__name__)
@@ -38,28 +37,35 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 main_app = FastAPI(
+    title="Spam Bonk API",
+    version="1.0.0",
+    openapi_version="3.1.0",
+    # TODO: Move to config - needed temporary for specific hosting purposes
+    # openapi_url="/openapi.json",
+    openapi_url="/openapi.json",
     lifespan=lifespan,
     default_response_class=ORJSONResponse,
 )
 
 main_app.include_router(router)
 
+# TODO: Move to config
 # CORS
 main_app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
 if __name__ == "__main__":
-    # Run with reload only in development
+    # TODO: Move to config
     uvicorn.run(
         "main:main_app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.ENVIRONMENT == "development",
+        reload=True,
         forwarded_allow_ips="*",
         proxy_headers=True,
     )

@@ -20,12 +20,11 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = "change-me"
     JWT_ALG: str = "HS256"
-    JWT_ACCESS_TTL_MIN: int = 15  # 15 minutes
+    JWT_ACCESS_TTL_MIN: int = 60 * 24 * 7  # 7 days
 
     OS_INGEST_URL: str = "http://localhost:8080/ingest"
-    
-    ENVIRONMENT: str = "development"
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    BOT_USERNAME: str = "your_bot_username"
 
     @property
     def DATABASE_URL(self) -> str:

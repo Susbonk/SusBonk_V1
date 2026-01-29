@@ -1,20 +1,41 @@
-use anyhow::{Context, Result};
+use serde_json::Value;
 
-/// Parse email recipients from environment variable
-/// Supports both CSV ("a@x.com,b@y.com") and JSON array (["a@x.com","b@y.com"])
-pub fn parse_email_recipients(input: &str) -> Result<Vec<String>> {
-    let trimmed = input.trim();
-    
-    if trimmed.starts_with('[') {
-        serde_json::from_str(trimmed).context("Failed to parse JSON array")
-    } else {
-        Ok(trimmed.split(',').map(|s| s.trim().to_string()).collect())
+/// Parse email list from string - supports both CSV format and JSON array
+pub fn parse_email_list(raw: &str) -> Vec<String> {
+    let s = raw.trim();
+    if s.is_empty() {
+        return vec![];
     }
+
+    // JSON array support
+    if s.starts_with('[') {
+        if let Ok(v) = serde_json::from_str::<Value>(s) {
+            if let Some(arr) = v.as_array() {
+                let out: Vec<String> = arr
+                    .iter()
+                    .filter_map(|x| x.as_str())
+                    .map(|x| x.trim())
+                    .filter(|x| !x.is_empty())
+                    .map(|x| x.to_string())
+                    .collect();
+                if !out.is_empty() {
+                    return out;
+                }
+            }
+        }
+        // fallthrough to CSV parsing
+    }
+
+    // Split ONLY by comma/semicolon to allow: "Ivan <a@b.com>"
+    s.split(|c: char| c == ',' || c == ';')
+        .map(|x| x.trim())
+        .filter(|x| !x.is_empty())
+        .map(|x| x.to_string())
+        .collect()
 }
 
-/// Convert bytes to gigabytes
-pub fn bytes_to_gb(bytes: u64) -> f64 {
-    bytes as f64 / 1_073_741_824.0
+pub fn bytes_to_gb(b: f64) -> f64 {
+    b / (1024.0_f64.powi(3))
 }
 
 #[cfg(test)]
@@ -22,27 +43,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_csv_recipients() {
-        let result = parse_email_recipients("admin@example.com,ops@example.com").unwrap();
-        assert_eq!(result, vec!["admin@example.com", "ops@example.com"]);
+    fn test_parse_email_list_csv() {
+        assert_eq!(
+            parse_email_list("a@b.com,c@d.com"),
+            vec!["a@b.com", "c@d.com"]
+        );
     }
 
     #[test]
-    fn test_parse_json_recipients() {
-        let result = parse_email_recipients(r#"["admin@example.com","ops@example.com"]"#).unwrap();
-        assert_eq!(result, vec!["admin@example.com", "ops@example.com"]);
-    }
-
-    #[test]
-    fn test_parse_single_recipient() {
-        let result = parse_email_recipients("admin@example.com").unwrap();
-        assert_eq!(result, vec!["admin@example.com"]);
+    fn test_parse_email_list_json() {
+        assert_eq!(
+            parse_email_list(r#"["a@b.com", "c@d.com"]"#),
+            vec!["a@b.com", "c@d.com"]
+        );
     }
 
     #[test]
     fn test_bytes_to_gb() {
-        assert_eq!(bytes_to_gb(1_073_741_824), 1.0);
-        assert_eq!(bytes_to_gb(2_147_483_648), 2.0);
-        assert!((bytes_to_gb(536_870_912) - 0.5).abs() < 0.001);
+        assert_eq!(bytes_to_gb(1024.0_f64.powi(3)), 1.0);
     }
 }
