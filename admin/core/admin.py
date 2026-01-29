@@ -1,57 +1,115 @@
 from django.contrib import admin
-from .models import User, Chat, Prompt, CustomPrompt, UserState, ChatPrompt, ChatCustomPrompt, RuntimeStatistics
+
+from . import models
 
 
-@admin.register(User)
+@admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'telegram_user_id', 'discord_user_id', 'is_active', 'created_at')
-    search_fields = ('username', 'email', 'telegram_user_id', 'discord_user_id')
-    list_filter = ('is_active', 'created_at')
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "telegram_user_id",
+        "discord_user_id",
+        "is_active",
+        "created_at",
+        "updated_at",
+    )
+    search_fields = ("username", "email")
+    list_filter = ("is_active",)
 
 
-@admin.register(Chat)
+@admin.register(models.Chat)
 class ChatAdmin(admin.ModelAdmin):
-    list_display = ('title', 'type', 'platform_chat_id', 'user', 'enable_ai_check', 'processed_messages', 'spam_detected', 'is_active')
-    search_fields = ('title', 'platform_chat_id', 'user__username')
-    list_filter = ('type', 'enable_ai_check', 'is_active', 'created_at')
+    list_display = (
+        "id",
+        "type",
+        "platform_chat_id",
+        "user",
+        "title",
+        "is_active",
+        "enable_ai_check",
+        "processed_messages",
+        "spam_detected",
+    )
+    search_fields = ("title", "platform_chat_id")
+    list_filter = ("type", "is_active", "enable_ai_check")
 
 
-@admin.register(Prompt)
+@admin.register(models.Prompt)
 class PromptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_active', 'created_at')
-    search_fields = ('name', 'prompt_text')
-    list_filter = ('is_active', 'created_at')
+    list_display = ("id", "name", "created_at", "updated_at")
+    search_fields = ("name",)
 
 
-@admin.register(CustomPrompt)
+@admin.register(models.CustomPrompt)
 class CustomPromptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user', 'is_active', 'created_at')
-    search_fields = ('name', 'prompt_text', 'user__username')
-    list_filter = ('is_active', 'created_at')
+    list_display = ("id", "name", "user", "created_at", "updated_at")
+    search_fields = ("name",)
+    list_filter = ("user",)
 
 
-@admin.register(UserState)
+@admin.register(models.UserState)
 class UserStateAdmin(admin.ModelAdmin):
-    list_display = ('external_user_id', 'chat', 'trusted', 'valid_messages', 'joined_at', 'is_active')
-    search_fields = ('external_user_id', 'chat__title')
-    list_filter = ('trusted', 'is_active', 'joined_at')
+    list_display = (
+        "id",
+        "chat",
+        "external_user_id",
+        "trusted",
+        "joined_at",
+        "valid_messages",
+    )
+    list_filter = ("trusted", "chat")
+    search_fields = ("external_user_id",)
 
 
-@admin.register(ChatPrompt)
+@admin.register(models.ChatPrompt)
 class ChatPromptAdmin(admin.ModelAdmin):
-    list_display = ('chat', 'prompt', 'priority', 'is_active')
-    search_fields = ('chat__title', 'prompt__name')
-    list_filter = ('is_active', 'created_at')
+    list_display = (
+        "id",
+        "chat",
+        "prompt",
+        "is_active",
+        "priority",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("is_active", "chat")
 
 
-@admin.register(ChatCustomPrompt)
+@admin.register(models.ChatCustomPrompt)
 class ChatCustomPromptAdmin(admin.ModelAdmin):
-    list_display = ('chat', 'custom_prompt', 'priority', 'is_active')
-    search_fields = ('chat__title', 'custom_prompt__name')
-    list_filter = ('is_active', 'created_at')
+    list_display = (
+        "id",
+        "chat",
+        "custom_prompt",
+        "is_active",
+        "priority",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("is_active", "chat")
 
 
-@admin.register(RuntimeStatistics)
+@admin.register(models.RuntimeStatistics)
 class RuntimeStatisticsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'messages_checked', 'ai_requests_made', 'messages_deleted', 'updated_at')
-    search_fields = ('name',)
+    list_display = (
+        "id",
+        "name",
+        "messages_checked",
+        "ai_requests_made",
+        "messages_deleted",
+        "created_at",
+        "updated_at",
+    )
+
+    list_filter = (
+        "name",
+        "messages_checked",
+        "ai_requests_made",
+        "messages_deleted",
+        "created_at",
+        "updated_at",
+    )
+
+    search_fields = ("name",)

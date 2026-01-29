@@ -1,20 +1,17 @@
-FROM python:3.13-slim
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
 WORKDIR /app
+COPY pyproject.toml uv.lock ./
 
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Additional fixing installation for Postgres, needed to work with db with Linux system
+RUN apt-get update && apt-get install -y libpq-dev
 
-COPY pyproject.toml uv.lock .python-version ./
-RUN pip install --no-cache-dir uv && \
-    uv sync --frozen
+RUN apt-get update && apt-get install -y netcat-openbsd
 
-COPY . .
+RUN uv sync --all-groups
 
-RUN chmod +x start.sh
+ENV PATH="/app/.venv/bin:$PATH"
 
-EXPOSE 8090
+COPY . /app
 
-CMD ["./start.sh"]
+RUN chmod +x ./start.sh
