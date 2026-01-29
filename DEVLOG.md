@@ -13,6 +13,28 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 03:12 PM - Development Update
+
+**Commit**: `52e5d702`  
+**Author**: SusBonk  
+**Changes**: fix: AI service code review fixes
+
+- Make stream names configurable via environment variables
+  - TASKS_STREAM (default: ai:tasks)
+  - RESULTS_STREAM (default: ai:results)
+  - CONSUMER_GROUP (default: ai-workers)
+- Remove fragile Docker detection logic
+- Update README with correct environment variables
+- Remove hardcoded constants and TODO comments
+
+All changes are backward compatible with sensible defaults.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 02:37 PM - Development Update
 
 **Commit**: `723d0b7f`  
@@ -541,6 +563,18 @@ GitHub's push protection caught it and refused. Had to run `git filter-branch` t
 **Author**: SusBonk  
 **Commits Being Pushed**:
 723d0b7 feat: add Cargo.lock and example usage scripts for AI service
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 29, 2026 - 03:12 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+52e5d70 fix: AI service code review fixes
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
