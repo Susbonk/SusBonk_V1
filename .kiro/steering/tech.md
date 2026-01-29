@@ -4,13 +4,15 @@
 **Frontend**: Svelte with TypeScript - Modern, reactive framework for fast, lightweight web interfaces
 **Backend**: 
 - **Log Platform** (Rust Workspace) - Unified `log-platform` with shared types and multiple service binaries
-- **API Server** (Python) - Dashboard API, user management, settings (planned)
+- **API Server** (Python/FastAPI) - Dashboard API, user management, settings
 **Message Processing**: 
 - `ingestd` (Rust) - HTTP log ingestion service with bulk indexing to OpenSearch
 - `alertd` (Rust) - Spam detection engine + infrastructure monitoring + email alerts
-**Database**: PostgreSQL - User settings, prompts, chat configurations (planned)
+**Telegram Bot**: Rust (teloxide) - Telegram group integration and message handling
+**AI Service**: Rust - Redis Streams worker consuming tasks and publishing results
+**Database**: PostgreSQL - User settings, prompts, chat configurations
 **Logging & Analytics**: OpenSearch + Dashboards - ECS-compliant logs with daily indices and 7-day retention
-**Message Queue**: Redis Streams with Consumer Groups - Producer/Worker pattern (prototyped)
+**Message Queue**: Redis Streams with Consumer Groups
 **Deployment**: Docker Compose with multi-stage builds, cloud hosting (AWS/DigitalOcean planned)
 
 ## Architecture Overview
@@ -28,10 +30,11 @@
   - Dashboards (osd01) on port 5601 for log visualization
   - Daily index pattern: `logs-{service}-{YYYY.MM.DD}`
   - ISM policy for automatic 7-day retention
-- **Python API Server**: REST API for frontend, user management, settings (planned)
-- **Telegram Bot Service**: Python-based bot for group integration (planned)
-- **Database Layer**: PostgreSQL for user data (planned); OpenSearch for logs and alerts (active)
-- **Message Queue**: Redis Streams with Consumer Groups (prototyped in redis-example/)
+- **Python API Server**: REST API for frontend, user management, settings
+- **Telegram Bot Service**: Rust bot for group integration
+- **AI Service**: Rust worker pool consuming tasks and publishing results
+- **Database Layer**: PostgreSQL for user data; OpenSearch for logs and alerts
+- **Message Queue**: Redis Streams with Consumer Groups
 
 ## Implementation Details
 **Log Platform Architecture**:

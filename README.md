@@ -2,6 +2,10 @@
 
 Automated spam and scam protection for Telegram groups with a user-friendly web dashboard.
 
+## Demo Video
+
+YouTube: `https://www.youtube.com/watch?v=REPLACE_ME`
+
 ## System Overview
 
 SusBonk provides AI-powered spam detection with centralized logging, real-time monitoring, and an intuitive control interface for non-technical group moderators.
@@ -12,22 +16,26 @@ SusBonk provides AI-powered spam detection with centralized logging, real-time m
 |---------|---------|------|
 | **frontend** | Web dashboard UI (Dashboard/Logs/Settings tabs) | Svelte + TypeScript |
 | **admin** | Django admin interface for database management | Django + PostgreSQL |
-| **backend** | REST API for dashboard, user management | Python + FastAPI (planned) |
-| **telegram-bot** | Telegram group integration and message handling | Python (planned) |
-| **ai-service** | Spam/scam detection ML models | Python (planned) |
+| **backend** | REST API for dashboard, user management | Python + FastAPI |
+| **telegram-bot** | Telegram group integration and message handling | Rust (teloxide) |
+| **ai-service** | Spam/scam detection worker (Redis Streams) | Rust |
 | **log-platform** | Unified logging platform (ingestd + alertd) | Rust workspace |
 | **log-platform/ingestd** | HTTP log ingestion service with bulk indexing | Rust (port 8080) |
 | **log-platform/alertd** | Spam detection + infrastructure monitoring | Rust |
 | **OpenSearch** | Log storage and analytics (ECS-compliant) | OpenSearch 2.x |
 | **OpenSearch Dashboards** | Log visualization and queries | OpenSearch Dashboards |
 | **PostgreSQL** | User settings, configurations | PostgreSQL 14+ |
-| **Redis** | Message queue, caching | Redis 6+ (planned) |
+| **Redis** | Message queue, caching | Redis 7+ |
 
 ## Quick Start
 
 ### Docker Compose (Recommended)
 
 ```bash
+# Create local env file
+cp .env.example .env
+# edit .env and replace CHANGE_ME_* values
+
 # Start all services
 docker compose up -d
 
@@ -36,6 +44,19 @@ docker compose logs -f
 
 # Stop services
 docker compose down
+```
+
+### Judge Quickstart
+
+```bash
+cp .env.example .env
+# edit .env and replace CHANGE_ME_* values
+
+docker compose up -d
+
+# Quick health checks
+curl -f http://localhost:8000/health || true
+curl -f http://localhost:8080/health || true
 ```
 
 ### Non-Compose Development
@@ -66,7 +87,7 @@ cargo run --bin alertd
 ```bash
 # Requires OpenSearch 2.x installed locally
 # Run initialization script
-cd init
+cd log-platform/init
 ./init.sh
 ```
 
@@ -84,10 +105,9 @@ cd init
 | PostgreSQL | localhost:5432 | 5432 |
 | Redis | localhost:6379 | 6379 |
 
-**Default Credentials:**
-- OpenSearch: `admin` / `Admin123!`
-- PostgreSQL: `susbonk` / `susbonk_dev`
-- Django Admin: `admin` / `admin` (configurable via env vars)
+**Local Credentials (Dev Only):**
+- Credentials and passwords come from your `.env` file (see `.env.example` and `docs/SECURITY_SETUP.md`).
+- Do not reuse local dev passwords for production.
 
 ## Production Notes
 
@@ -95,9 +115,9 @@ cd init
 - `OPENSEARCH_URL` - OpenSearch endpoint
 - `OPENSEARCH_USER` - OpenSearch username
 - `OPENSEARCH_PASSWORD` - OpenSearch password
-- `DATABASE_URL` - PostgreSQL connection string (planned)
-- `REDIS_URL` - Redis connection string (planned)
-- `TELEGRAM_BOT_TOKEN` - Bot API token (planned)
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+- `TELEGRAM_BOT_TOKEN` - Bot API token
 
 **Secrets Management:**
 - Store credentials in `.env` files (never commit)
@@ -106,8 +126,8 @@ cd init
 
 **Persistent Volumes:**
 - `opensearch-data` - Log indices and cluster state
-- `postgres-data` - User data and configurations (planned)
-- `redis-data` - Queue persistence (planned)
+- `postgres-data` - User data and configurations
+- `redis-data` - Queue persistence
 
 **Health Checks:**
 - All services include Docker healthchecks
