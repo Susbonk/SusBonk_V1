@@ -13,6 +13,45 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 09:46 PM - Development Update
+
+**Commit**: `4560076a`  
+**Author**: SusBonk  
+**Changes**: feat(frontend): add chat prompts API and deployment artifacts
+
+4.3 Chat Prompts API & UI
+- Add chatPrompts.ts API module with full CRUD operations
+  - GET /chats/{chat_id}/linked_prompts
+  - POST /chats/{chat_id}/prompts
+  - DELETE /chats/{chat_id}/prompts/{prompt_id}
+  - POST /chats/{chat_id}/custom-prompts
+  - DELETE /chats/{chat_id}/custom-prompts/{custom_prompt_id}
+- Add ChatPrompts.svelte component
+  - Link/unlink system prompts per chat
+  - Link/unlink custom prompts per chat
+  - Configure threshold and priority per link
+  - Show active/inactive status
+- Per-link thresholds override global defaults
+
+4.4 Frontend Container/Proxy Artifacts
+- Add nginx.conf with SPA routing and API proxy
+- Add .dockerignore for optimized builds
+- Update Dockerfile to use nginx.conf file
+- Add DEPLOYMENT.md with build/deploy instructions
+- Confirm package-lock.json committed (npm standard)
+
+Acceptance criteria met:
+✅ Users can configure which prompts run per chat
+✅ Per-link threshold configuration supported
+✅ Frontend builds reproducibly with Docker+nginx
+✅ Production deployment documented  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 09:41 PM - Development Update
 
 **Commit**: `6531cc05`  
@@ -786,6 +825,18 @@ a436764 feat(log-platform): add OpenSearch init, parsing utils, and examples
 **Author**: SusBonk  
 **Commits Being Pushed**:
 6531cc0 chore: update devlog
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 29, 2026 - 09:47 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+4560076 feat(frontend): add chat prompts API and deployment artifacts
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
