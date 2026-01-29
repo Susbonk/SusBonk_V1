@@ -27,3 +27,4 @@ The app supports a UI-only dev shortcut:
 
 This bypasses auth and loads a hardcoded demo state for UI testing.
 
+Note: this is gated behind `import.meta.env.DEV` and should only be used with the Vite dev server (`npm run dev`), not production builds.
