@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+@import "./theme.css";
+
+/* Design System */
+:root {
+  --color-primary: #CCFF00;
+  --color-secondary: #FF8A00;
+  --font-main: 'Poppins', sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: #ffffff;
+  /* Fallback */
+}
+
+/* Neobrutalist Components */
+.card {
+  @apply bg-white border-4 border-black p-4;
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.btn {
+  @apply border-3 border-black transition-all font-bold;
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.btn:active {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+.btn-primary {
+  @apply bg-[#CCFF00] hover:bg-[#d9ff33];
+}
+
+.btn-secondary {
+  @apply bg-[#FF8A00] hover:bg-[#ff9f2e];
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white hover:bg-red-600;
+}
+
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4;
+}
+
+.modal-content {
+  @apply bg-white border-4 border-black max-w-md w-full p-6;
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Form Elements */
+input,
+textarea,
+select {
+  @apply border-3 border-black px-3 py-2 font-medium transition-colors;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  @apply outline-none border-[#CCFF00];
+}
+
+input[type="checkbox"] {
+  @apply w-5 h-5 accent-[#CCFF00];
+}
+
+input[type="range"] {
+  @apply w-full h-2 accent-[#FF8A00];
+}
+
+/* Utilities */
+@layer utilities {
+  .border-3 {
+    border-width: 3px;
+  }
+
+  .font-heading {
+    font-weight: 800;
+  }
+
+  .font-body {
+    font-weight: 600;
+  }
+}
+
+/* Container */
+.container {
+  @apply max-w-4xl mx-auto p-4;
+}
+
+/* Table Styles */
+.table-container {
+  @apply overflow-x-auto border-3 border-black;
+}
+
+table {
+  @apply w-full border-collapse;
+}
+
+th,
+td {
+  @apply border-2 border-black p-3 text-left;
+}
+
+th {
+  @apply bg-gray-100 font-bold;
+}
+
+/* Status Badges */
+.status-badge {
+  @apply inline-block px-2 py-1 border-2 border-black font-bold text-sm;
+}
+
+.status-badge.active,
+.status-badge.trusted {
+  @apply bg-green-400;
+}
+
+.status-badge.inactive,
+.status-badge.untrusted {
+  @apply bg-red-400;
+}
+
+/* Tags */
+.tag {
+  @apply inline-flex items-center bg-gray-100 border-2 border-black px-2 py-1 text-sm font-medium mr-1 mb-1;
+}
+
+.tag-remove {
+  @apply ml-1 text-gray-500 hover:text-red-500 cursor-pointer;
+}

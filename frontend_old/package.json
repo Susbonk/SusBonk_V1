@@ -1,0 +1,28 @@
+{
+  "name": "susbonk",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "lucide-svelte": "^0.469.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tailwindcss/vite": "^4.1.12",
+    "@tsconfig/svelte": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "svelte": "^5.43.8",
+    "svelte-check": "^4.3.4",
+    "tailwindcss": "^4.1.12",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4"
+  }
+}
