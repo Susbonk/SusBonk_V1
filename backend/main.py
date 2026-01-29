@@ -54,12 +54,12 @@ main_app.add_middleware(
 )
 
 if __name__ == "__main__":
-    # TODO: Move to config
+    # Run with reload only in development
     uvicorn.run(
         "main:main_app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=settings.ENVIRONMENT == "development",
         forwarded_allow_ips="*",
         proxy_headers=True,
     )

@@ -22,18 +22,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
+# SECURITY: Secret key from environment variable
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('ENVIRONMENT') == 'development':
+        SECRET_KEY = 'django-insecure-dev-only-key'
+    else:
+        raise Exception('DJANGO_SECRET_KEY environment variable required in production')
+
+# SECURITY: DEBUG mode only in development
+DEBUG = os.environ.get('ENVIRONMENT', 'production') == 'development'
+
+# SECURITY: Restrict allowed hosts
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+
 # TODO: Move to config and env
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!$(mo3xusg1#@dqv)ei)0@)p2f6$o6&=1cm5$ku9j+b^++8-+s'  # noqa: E501
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# TODO: Move to config and env and specify allowed hosts
-ALLOWED_HOSTS = ['*']
-
-# TODO: Move to config and env
-CSRF_TRUSTED_ORIGINS = [
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else [
     "https://*.ngrok-free.app",
     "https://*.ts.net",
 ]

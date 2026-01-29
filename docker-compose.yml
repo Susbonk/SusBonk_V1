@@ -24,13 +24,15 @@ services:
   redis:
     image: redis:7-alpine
     container_name: susbonk-redis
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_dev_password}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_password}
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_dev_password}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -174,7 +176,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-susbonk_dev}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       OPENSEARCH_URL: https://opensearch:9200
       OPENSEARCH_USER: admin
       OPENSEARCH_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
@@ -209,7 +211,7 @@ services:
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       BACKEND_URL: http://backend:8000
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       LOG_INGEST_URL: http://log-ingest:8080
       ENVIRONMENT: ${ENVIRONMENT:-development}
     depends_on:
@@ -226,7 +228,7 @@ services:
       dockerfile: Dockerfile
     container_name: susbonk-ai-service
     environment:
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       LOG_INGEST_URL: http://log-ingest:8080
       MODEL_PATH: ${MODEL_PATH:-/models}
       ENVIRONMENT: ${ENVIRONMENT:-development}
