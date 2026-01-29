@@ -1,0 +1,29 @@
+{
+  "policy": {
+    "description": "Delete logs after 7 days",
+    "default_state": "active",
+    "states": [
+      {
+        "name": "active",
+        "actions": [],
+        "transitions": [
+          {
+            "state_name": "delete",
+            "conditions": {
+              "min_index_age": "7d"
+            }
+          }
+        ]
+      },
+      {
+        "name": "delete",
+        "actions": [
+          {
+            "delete": {}
+          }
+        ],
+        "transitions": []
+      }
+    ]
+  }
+}
