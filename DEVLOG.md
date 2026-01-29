@@ -13,6 +13,84 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 11:32 PM - Development Update
+
+**Commit**: `98dd92ab`  
+**Author**: SusBonk  
+**Changes**: feat(telegram-bot): add AI task/result models for bot ↔ AI service
+
+6.1 Add AI Models and Stream Constants
+- Create ai_models.rs with strongly typed structs
+- Define stream names: ai:tasks, ai:results
+- Define consumer groups: ai-workers, bot-processors
+- Add AiTask struct (bot → AI service)
+  - task_id, chat_id, message_id, user_id
+  - message_text, prompt_ids, thresholds
+  - created_at timestamp
+- Add AiResult struct (AI service → bot)
+  - task_id, ok, error, is_spam, score
+  - matched_prompt_id, matched_prompt_name
+  - elapsed_ms, message context fields
+  - completed_at timestamp
+- Add helper constructors: spam(), not_spam(), error()
+- Include 4 unit tests (all passing)
+
+Acceptance criteria met:
+✅ Bot ↔ AI service communication strongly typed
+✅ Serialization consistent across services
+✅ Stream naming constants defined
+✅ Tests verify serialization/deserialization  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 29, 2026 - 11:27 PM - Development Update
+
+**Commit**: `e6ba040f`  
+**Author**: SusBonk  
+**Changes**: docs(postal): add code review for empty postal directory
+
+Review findings:
+- Directory exists but contains no implementation
+- Only empty config/ subdirectory present
+- No files, no code, no documentation
+
+Recommendations:
+- Option 1: Implement email service for alerting
+- Option 2: Remove directory if not needed
+
+Status: Incomplete placeholder, low priority  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 29, 2026 - 09:53 PM - Development Update
+
+**Commit**: `564fb513`  
+**Author**: SusBonk  
+**Changes**: feat(frontend): Add legacy frontend as temporary solution
+
+The frontend_cyberpunk folder contains the previous frontend implementation that needs to be reworked due to:
+- Performance issues in production
+- Outdated dependencies
+- Architectural limitations
+
+This is being added as a temporary reference while the new implementation is developed.
+
+Note: This frontend version should not be used in production and will be replaced soon.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 09:46 PM - Development Update
 
 **Commit**: `4560076a`  
@@ -844,6 +922,31 @@ a436764 feat(log-platform): add OpenSearch init, parsing utils, and examples
 
 ---
 
+### Jan 29, 2026 - 09:54 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+564fb51 feat(frontend): Add legacy frontend as temporary solution
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 29, 2026 - 11:33 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+98dd92a feat(telegram-bot): add AI task/result models for bot ↔ AI service
+e6ba040 docs(postal): add code review for empty postal directory
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
 ## Day 2 (Jan 8) - Backend Architecture [6h]
 
 ### Morning Reality Check
@@ -889,6 +992,18 @@ Multi-platform support, AI prompt system, user trust tracking. Properly normaliz
 - **Naming prompt**: "Enforce consistent index naming: logs-{service}-{YYYY.MM.DD}"
 - **Architecture prompt**: "Design multi-service logging with shared Rust types"
 - **Debug prompt**: Docker build failures—Kiro identified missing workspace members in COPY commands
+
+### Jan 29, 2026 - 11:28 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+e6ba040 docs(postal): add code review for empty postal directory
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
 
 ### Jan 21, 2026 - 03:23 PM - Push to master
 
