@@ -11,6 +11,7 @@ SusBonk provides AI-powered spam detection with centralized logging, real-time m
 | Service | Purpose | Tech |
 |---------|---------|------|
 | **frontend** | Web dashboard UI (Dashboard/Logs/Settings tabs) | Svelte + TypeScript |
+| **admin** | Django admin interface for database management | Django + PostgreSQL |
 | **backend** | REST API for dashboard, user management | Python + FastAPI (planned) |
 | **telegram-bot** | Telegram group integration and message handling | Python (planned) |
 | **ai-service** | Spam/scam detection ML models | Python (planned) |
@@ -19,7 +20,7 @@ SusBonk provides AI-powered spam detection with centralized logging, real-time m
 | **log-platform/alertd** | Spam detection + infrastructure monitoring | Rust |
 | **OpenSearch** | Log storage and analytics (ECS-compliant) | OpenSearch 2.x |
 | **OpenSearch Dashboards** | Log visualization and queries | OpenSearch Dashboards |
-| **PostgreSQL** | User settings, configurations | PostgreSQL 14+ (planned) |
+| **PostgreSQL** | User settings, configurations | PostgreSQL 14+ |
 | **Redis** | Message queue, caching | Redis 6+ (planned) |
 
 ## Quick Start
@@ -74,6 +75,7 @@ cd init
 | Service | URL | Port |
 |---------|-----|------|
 | Frontend Dashboard | http://localhost:5173 | 5173 |
+| Django Admin | http://localhost:8090/admin | 8090 |
 | Backend API | http://localhost:8000 | 8000 |
 | AI Service | http://localhost:8001 | 8001 |
 | Log Ingestion API | http://localhost:8080 | 8080 |
@@ -85,6 +87,7 @@ cd init
 **Default Credentials:**
 - OpenSearch: `admin` / `Admin123!`
 - PostgreSQL: `susbonk` / `susbonk_dev`
+- Django Admin: `admin` / `admin` (configurable via env vars)
 
 ## Production Notes
 

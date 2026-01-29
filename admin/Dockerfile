@@ -4,15 +4,17 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e .
+COPY pyproject.toml uv.lock .python-version ./
+RUN pip install --no-cache-dir uv && \
+    uv sync --frozen
 
 COPY . .
 
 RUN chmod +x start.sh
 
-EXPOSE 5000
+EXPOSE 8090
 
 CMD ["./start.sh"]

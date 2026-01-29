@@ -29,12 +29,12 @@ class Chat(BaseModel):
     chat_link = models.CharField(max_length=512, null=True, blank=True)
     
     enable_ai_check = models.BooleanField(default=False)
-    prompts_threshold = models.FloatField(default=0.35)
-    custom_prompt_threshold = models.FloatField(default=0.35)
+    enable_ai_moderation = models.BooleanField(default=True)
     
-    cleanup_mentions = models.BooleanField(default=False)
-    cleanup_emojis = models.BooleanField(default=False)
-    cleanup_links = models.BooleanField(default=False)
+    clean_up_mentions = models.BooleanField(default=False)
+    clean_up_emojis = models.BooleanField(default=False)
+    clean_up_links = models.BooleanField(default=False)
+    allowed_mentions = models.JSONField(null=True, blank=True)
     allowed_link_domains = models.JSONField(null=True, blank=True)
     
     processed_messages = models.IntegerField(default=0)
@@ -135,6 +135,7 @@ class RuntimeStatistics(BaseModel):
     messages_checked = models.IntegerField(default=0)
     ai_requests_made = models.IntegerField(default=0)
     messages_deleted = models.IntegerField(default=0)
+    chat_messages_deleted = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'runtime_statistics'
