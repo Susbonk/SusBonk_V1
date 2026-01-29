@@ -13,6 +13,22 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 01:13 PM - Development Update
+
+**Commit**: `34b48f7c`  
+**Author**: SusBonk  
+**Changes**: chore: archive broken frontend, preserve legacy code
+
+Frontend is hopelessly broken. Moving old implementation to frontend_old/
+as legacy code to potentially revisit later. Current frontend needs complete
+rebuild to integrate with backend APIs properly.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 11:43 AM - Development Update
 
 **Commit**: `7e88ecf7`  
@@ -480,6 +496,16 @@ GitHub's push protection caught it and refused. Had to run `git filter-branch` t
 - Files Changed: 15
 - Lines Added: 429
 - Lines Removed: 316
+
+### Jan 29, 2026 - 01:14 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+34b48f7 chore: archive broken frontend, preserve legacy code
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
 
 ---
 

@@ -78,3 +78,29 @@ The telegram bot is responsible for:
 - Making moderation decisions
 
 The ai-service only handles LLM API calls and returns raw responses.
+
+## Testing
+
+See [example_usage/](./example_usage/) for standalone testing scripts:
+
+- `submit_task.py` - Submit a task to the AI service
+- `tail_results.py` - Monitor the results stream
+- `demo.py` - Submit a task and wait for the result
+
+These scripts allow you to validate the AI service in isolation without running the full bot.
+
+Example:
+```bash
+cd example_usage
+pip install -r requirements.txt
+python demo.py "Is this spam: Buy cheap watches now!"
+```
+
+See [example_usage/README.md](./example_usage/README.md) for detailed usage instructions.
+
+## Dependency Management
+
+This project uses `Cargo.lock` for deterministic builds:
+- **Committed to git**: Yes, `Cargo.lock` is version controlled
+- **Docker builds**: Use `cargo build --locked` to ensure exact versions
+- **CI/CD**: Always use lockfile for reproducible builds

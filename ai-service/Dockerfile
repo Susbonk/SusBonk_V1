@@ -10,12 +10,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy source files
-COPY Cargo.toml Cargo.lock* ./
+# Copy dependency files
+COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 
-# Build the service binary (release mode)
-RUN cargo build --release
+# Build the service binary (release mode) with locked dependencies
+RUN cargo build --release --locked
 
 # Runtime stage
 FROM debian:bookworm-slim
