@@ -13,6 +13,53 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 30, 2026 - 12:14 AM - Development Update
+
+**Commit**: `809dfd8e`  
+**Author**: SusBonk  
+**Changes**: feat(telegram-bot): add Redis stream helper utilities
+
+6.2 Add Redis Stream Utilities
+- Create redis_utils.rs with stream management helpers
+- Add ensure_consumer_group() with BUSYGROUP handling
+  - Creates stream if not exists (MKSTREAM)
+  - Gracefully handles existing groups
+- Add ack_and_delete() to prevent message leaks
+  - Acknowledges message (XACK)
+  - Deletes from stream (XDEL)
+- Add with_retry() for exponential backoff
+  - 3 retry attempts with 100ms base delay
+  - Handles transient errors (connection, timeout, cluster)
+- Add read_group() for consumer group reads
+  - Supports blocking reads with count limit
+- Add is_transient_error() helper
+  - Identifies retryable errors
+- Include 2 unit tests (all passing)
+
+Acceptance criteria met:
+✅ Consumer group creation is reliable
+✅ Message ack/delete prevents leaks
+✅ Retry logic handles transient failures
+✅ Ready for worker integration  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 30, 2026 - 12:08 AM - Development Update
+
+**Commit**: `46550563`  
+**Author**: SusBonk  
+**Changes**: chore: update devlog  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 11:32 PM - Development Update
 
 **Commit**: `98dd92ab`  
@@ -940,6 +987,30 @@ a436764 feat(log-platform): add OpenSearch init, parsing utils, and examples
 **Commits Being Pushed**:
 98dd92a feat(telegram-bot): add AI task/result models for bot ↔ AI service
 e6ba040 docs(postal): add code review for empty postal directory
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 30, 2026 - 12:08 AM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+4655056 chore: update devlog
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 30, 2026 - 12:15 AM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+809dfd8 feat(telegram-bot): add Redis stream helper utilities
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
