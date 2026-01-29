@@ -15,6 +15,7 @@ mod opensearch_ingest;
 mod database;
 mod services;
 mod redis_service;
+mod redis_utils;
 mod ai_models;
 
 mod workers;
