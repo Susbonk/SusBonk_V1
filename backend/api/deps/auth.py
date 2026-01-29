@@ -1,39 +1,49 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from database.helper import get_db
-from database.models import User
-from api.security import decode_access_token
+from uuid import UUID
 
-security = HTTPBearer()
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.security import decode_token
+from database import db_helper
+from database.models import Users
+from logger import get_logger
+
+
+log = get_logger(__name__)
+
+bearer = HTTPBearer(auto_error=False)
+get_session = db_helper.session_getter
+
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db)
-) -> User:
-    token = credentials.credentials
+    creds: HTTPAuthorizationCredentials = Depends(bearer),
+    session: AsyncSession = Depends(get_session),
+) -> Users:
+    log.debug("Processing authentication request")
+    if creds is None or creds.scheme.lower() != "bearer":
+        log.warning("Authentication failed: No bearer token provided")
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     try:
-        payload = decode_access_token(token)
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials"
-            )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
-        )
-    
-    result = await db.execute(select(User).filter(User.id == user_id))
-    user = result.scalar_one_or_none()
+        payload = decode_token(creds.credentials)
+        user_id = UUID(payload["sub"])
+        log.debug(f"Decoded token for user ID: {user_id}")
+    except Exception as e:
+        log.error(f"Authentication failed: Invalid token - {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    stmt = select(Users).where(
+        Users.id == user_id,
+        Users.is_active == True,  # noqa: E712
+    )
+    res = await session.execute(stmt)
+    user = res.scalar_one_or_none()
+
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
-    
+        log.warning(f"Authentication failed: User not found or inactive - {user_id}")
+        raise HTTPException(status_code=401, detail="User not found")
+
+    log.info(f"Successfully authenticated user: {user.id}")
     return user

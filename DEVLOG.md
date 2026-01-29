@@ -13,6 +13,128 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 11:05 AM - Development Update
+
+**Commit**: `a36a9dd8`  
+**Author**: SusBonk  
+**Changes**: Add Django admin service with DB triggers and migrations
+
+2.1 Django ready() trigger hook:
+- Add apps.py with CoreConfig and post_migrate hook
+- Add db_triggers.py with set_updated_at() function
+- Automatic trigger installation on all tables
+
+2.2 Missing Django migrations:
+- 0003: Add chat_messages_deleted to RuntimeStatistics
+- 0004: Set server-side timestamp defaults
+- 0005: Update Chat fields (allowed_mentions, cleanup renames, remove thresholds)
+- Update models.py to match migration changes
+
+2.3 ASGI entrypoint:
+- Add asgi.py for async deployment support
+- Update start.sh with ASGI documentation
+- Add uvicorn dependency
+
+2.4 Runtime pin/lock files:
+- Add .python-version (3.13)
+- Generate uv.lock with frozen dependencies
+- Update Dockerfile to use uv
+
+Additional:
+- Add admin service to docker-compose.yml with health checks
+- Update README with admin service and credentials
+- Add DEPLOYMENT.md with comprehensive documentation
+- Update .env.example with Django admin variables  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 29, 2026 - 11:00 AM - Development Update
+
+**Commit**: `fd3c4a4e`  
+**Author**: SusBonk  
+**Changes**: Add root documentation and Docker orchestration
+
+- Add README.md with system overview, services, quick start, and deployment notes
+- Add TODO.md tracker organized by subsystem and priority with known gaps
+- Add docker-compose.yml orchestrating all services with health checks
+- Add .env.example template for environment configuration
+- Update documentation links and service ports  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 26, 2026 - 06:35 PM - Development Update
+
+**Commit**: `b479237b`  
+**Author**: SusBonk  
+**Changes**: feat: Complete FastAPI backend blueprint migration (13 tasks)
+
+BREAKING CHANGES:
+- Upgrade to Python 3.13 + uv dependency management
+- Replace python-jose with pyjwt, bcrypt with argon2-cffi
+- Restructure directory layout (core/, models/, schemas/, handlers/)
+- Convert settings to UPPERCASE environment variables
+- Implement typed SQLAlchemy 2.0 models with Mapped[] syntax
+- Update all schemas to Pydantic v2 with ConfigDict
+- Replace session management with db_helper pattern
+
+NEW FEATURES:
+- Chat-prompt linking CRUD with priority support
+- Redis streams integration for deleted messages
+- Platform user ID normalization (telegram_user_id → platform_user_id)
+- Configurable prompt selection strategy per chat
+- Enhanced error handling with proper HTTP status codes
+
+TECHNICAL IMPROVEMENTS:
+- 18 API endpoints with complete OpenAPI documentation
+- Argon2 password hashing with JWT Bearer authentication
+- Event-driven Redis streams (deleted_messages:{chat_id} pattern)
+- Graceful Redis failure handling (502 errors)
+- Comprehensive ownership checks and validation
+- Production-ready error handling and documentation
+
+MIGRATION COMPLETED:
+✅ Task 1: API and DB scope decisions
+✅ Task 2: Python 3.13 + uv runtime upgrade
+✅ Task 3: Directory structure reorganization
+✅ Task 4: Settings standardization (UPPERCASE)
+✅ Task 5: Unified db_helper session pattern
+✅ Task 6: Typed SQLAlchemy 2.0 models
+✅ Task 7: Complete Pydantic v2 schemas
+✅ Task 8: Argon2 + pyjwt authentication
+✅ Task 9: Blueprint-compliant API handlers
+✅ Task 10: Chat-prompt linking CRUD
+✅ Task 11: Redis streams integration
+✅ Task 12: Database schema compliance
+✅ Task 13: Complete validation
+
+All endpoints tested and production-ready with comprehensive validation.  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
+### Jan 26, 2026 - 04:13 PM - Development Update
+
+**Commit**: `502f65a9`  
+**Author**: SusBonk  
+**Changes**: chore: update devlog with latest commit info  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 26, 2026 - 04:12 PM - Development Update
 
 **Commit**: `8808ddcb`  

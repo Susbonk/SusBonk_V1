@@ -1,4 +1,4 @@
-__all__ = ["setup_logging", "get_logger", "start_log_shipping", "stop_log_shipping", "logger"]
+__all__ = ["setup_logging", "get_logger", "ColoredFormatter"]
 
 import logging
 
@@ -6,13 +6,15 @@ from settings import settings
 from .colored_formatter import ColoredFormatter
 from .opensearch_handler import OpenSearchIngestHandler
 
+# TODO: Move to config
+
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-LOG_LEVEL = "INFO"
+LOG_LEVEL = "DEBUG"
 
 ENABLE_OS_LOGS = True
-SERVICE_NAME = "susbonk-api"
+SERVICE_NAME = "backend"
 
-OS_INGEST_URL = settings.os_ingest_url
+OS_INGEST_URL = settings.OS_INGEST_URL
 
 _os_handler: OpenSearchIngestHandler | None = None
 
@@ -28,6 +30,7 @@ def setup_logging() -> None:
 
     global _os_handler
     if ENABLE_OS_LOGS:
+        # TODO: Move to config
         _os_handler = OpenSearchIngestHandler(
             ingest_url=OS_INGEST_URL,
             service_name=SERVICE_NAME,
@@ -54,20 +57,3 @@ async def stop_log_shipping() -> None:
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
-
-
-# Legacy compatibility: setup basic logger for sync usage
-def _setup_basic_logger(name: str = "susbonk-api") -> logging.Logger:
-    logger = logging.getLogger(name)
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            '{"time": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
-        ))
-        logger.addHandler(handler)
-    return logger
-
-
-# For backward compatibility with existing code using `from logger import logger`
-logger = _setup_basic_logger()

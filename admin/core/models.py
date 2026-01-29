@@ -24,7 +24,7 @@ class Chat(BaseModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chats')
     type = models.CharField(max_length=16, choices=CHAT_TYPES)
-    platform_chat_id = models.BigIntegerField()
+    platform_chat_id = models.BigIntegerField(db_index=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     chat_link = models.CharField(max_length=512, null=True, blank=True)
     
@@ -48,6 +48,10 @@ class Chat(BaseModel):
                 fields=['type', 'platform_chat_id'],
                 name='uk_chats_type_platform_chat_id'
             )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'is_active'], name='idx_chats_user_active'),
+            models.Index(fields=['type', 'platform_chat_id'], name='idx_chats_type_platform'),
         ]
 
     def __str__(self):
@@ -79,7 +83,7 @@ class CustomPrompt(BaseModel):
 
 class UserState(BaseModel):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='user_states')
-    external_user_id = models.BigIntegerField()
+    external_user_id = models.BigIntegerField(db_index=True)
     trusted = models.BooleanField(default=False, db_index=True)
     joined_at = models.DateTimeField(null=True, blank=True)
     valid_messages = models.IntegerField(default=0)
@@ -88,6 +92,7 @@ class UserState(BaseModel):
         db_table = 'user_states'
         indexes = [
             models.Index(fields=['chat', 'external_user_id'], name='idx_user_states_chat_extuser'),
+            models.Index(fields=['external_user_id', 'trusted'], name='idx_user_states_extuser_trusted'),
         ]
 
     def __str__(self):

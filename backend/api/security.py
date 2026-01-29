@@ -1,21 +1,58 @@
 from datetime import datetime, timedelta, timezone
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from settings import settings
+from typing import Any
+from uuid import UUID
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import jwt
+from passlib.context import CryptContext
+
+from settings import settings
+from logger import get_logger
+
+
+log = get_logger(__name__)
+
+pwd_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto",
+)
+
 
 def hash_password(password: str) -> str:
+    log.debug("Hashing password")
     return pwd_context.hash(password)
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_ttl_min)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.jwt_secret, algorithm=settings.jwt_alg)
+def verify_password(password: str, password_hash: str) -> bool:
+    log.debug("Verifying password")
+    return pwd_context.verify(password, password_hash)
 
-def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_alg])
+
+def create_access_token(*, sub: UUID, ttl_minutes: int) -> str:
+    log.debug(f"Creating access token for user: {sub}, TTL: {ttl_minutes} minutes")
+    now = datetime.now(timezone.utc)
+    payload: dict[str, Any] = {
+        "sub": str(sub),
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=ttl_minutes)).timestamp()),
+    }
+    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALG)
+    log.info(f"Successfully created access token for user: {sub}")
+    return token
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    log.debug("Decoding JWT token")
+    try:
+        decoded_payload = jwt.decode(
+            token,
+            settings.JWT_SECRET,
+            algorithms=[settings.JWT_ALG],
+        )
+        log.info("Successfully decoded JWT token")
+        return decoded_payload
+    except jwt.ExpiredSignatureError:
+        log.info("JWT token has expired")
+        raise
+    except jwt.InvalidTokenError:
+        log.warning("Invalid JWT token")
+        raise

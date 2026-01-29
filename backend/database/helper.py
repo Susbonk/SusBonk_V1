@@ -1,35 +1,50 @@
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncEngine,
+    async_sessionmaker,
+    AsyncSession,
+)
+
+from logger import get_logger
 from settings import settings
 
-# Convert sync database URL to async
-async_database_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
 
-engine = create_async_engine(
-    async_database_url,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=3600,
-    echo=False
-)
+log = get_logger(__name__)
 
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autoflush=False
-)
 
-Base = declarative_base()
+class DataBaseHelper:
+    def __init__(
+        self,
+        url: str,
+        echo: bool,
+        pool_size: int,
+        max_overflow: int,
+    ):
+        self.engine: AsyncEngine = create_async_engine(
+            url=url,
+            echo=echo,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+        )
+        self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(  # noqa: E501
+            bind=self.engine,
+            autoflush=False,
+            autocommit=False,
+            expire_on_commit=False,
+        )
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        try:
+    async def dispose(self) -> None:
+        log.info("Closing database connection")
+        await self.engine.dispose()
+
+    async def session_getter(self):
+        async with self.session_factory() as session:
             yield session
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+
+
+db_helper = DataBaseHelper(
+    url=settings.DATABASE_URL,
+    echo=settings.DB_ECHO,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+)

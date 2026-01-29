@@ -1,12 +1,15 @@
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
 WORKDIR /app
+COPY pyproject.toml uv.lock .python-version ./
 
-COPY pyproject.toml .
-RUN uv pip install --system -r pyproject.toml
+# Additional fixing installation for Postgres, needed to work with db with Linux system
+RUN apt-get update && apt-get install -y libpq-dev curl && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+RUN uv sync --frozen
 
-EXPOSE 8000
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY . /app
+
+CMD ["uv", "run", "main.py"]

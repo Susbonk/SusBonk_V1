@@ -45,12 +45,18 @@ admin/
 
 ## Quick Start
 
+### Prerequisites
+
+- Python 3.13 (specified in `.python-version`)
+- [uv](https://github.com/astral-sh/uv) package manager
+- PostgreSQL 14+
+
 ### Local Development
 
 ```bash
-# Install dependencies
+# Install dependencies with uv (uses uv.lock for reproducible builds)
 cd admin
-pip install -e .
+uv sync
 
 # Set environment variables
 export POSTGRES_DB=postgres
@@ -60,24 +66,42 @@ export POSTGRES_HOST=localhost
 export POSTGRES_PORT=5432
 
 # Run migrations
-python manage.py migrate
+uv run python manage.py migrate
 
 # Create superuser
-python manage.py createsuperuser
+uv run python manage.py createsuperuser
 
 # Start server
-python manage.py runserver 0.0.0.0:5000
+uv run python manage.py runserver 0.0.0.0:8090
+```
+
+### Dependency Management
+
+This project uses `uv` for dependency management:
+- `pyproject.toml`: Declares dependencies
+- `uv.lock`: Locks exact versions for reproducibility
+- `.python-version`: Pins Python version to 3.13
+
+To update dependencies:
+```bash
+# Add new dependency
+uv add <package>
+
+# Update all dependencies
+uv lock --upgrade
+
+# Sync environment with lockfile
+uv sync
 ```
 
 ### Docker Deployment
 
 ```bash
-# From backend directory
-cd backend
+# From project root
 docker-compose up -d admin
 
 # Access admin panel
-open http://localhost:5000/admin
+open http://localhost:8090/admin
 ```
 
 Default superuser credentials (created automatically):
@@ -180,4 +204,12 @@ Edit `core/admin.py` to add:
 
 ## Port
 
-- Admin panel: `http://localhost:5000/admin`
+- Admin panel: `http://localhost:8090/admin`
+
+## Lockfile Policy
+
+This project uses `uv.lock` for deterministic dependency resolution:
+- **Committed to git**: Yes, `uv.lock` is version controlled
+- **Updated when**: Dependencies change in `pyproject.toml`
+- **Docker builds**: Use `uv sync --frozen` to ensure exact versions
+- **CI/CD**: Always use lockfile for reproducible builds

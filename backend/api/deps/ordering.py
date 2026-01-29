@@ -1,21 +1,29 @@
-from typing import Optional
+from typing import List, Optional, Any, Type
 from fastapi import Query
+from sqlalchemy import desc
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.sql.expression import nullslast
+
 
 class Ordering:
     def __init__(
         self,
-        order_by: Optional[str] = Query(None, description="Field to order by"),
-        order_dir: Optional[str] = Query("asc", pattern="^(asc|desc)$", description="Order direction")
+        model: Type[DeclarativeBase],
+        allowed_fields: List[str],
+        default_field: str = "id",
     ):
-        self.order_by = order_by
-        self.order_dir = order_dir
-    
-    def apply(self, query, model, default_field: str = "created_at"):
-        field = self.order_by or default_field
-        if not hasattr(model, field):
-            field = default_field
-        
-        column = getattr(model, field)
-        if self.order_dir == "desc":
-            return query.order_by(column.desc())
-        return query.order_by(column.asc())
+        self.model = model
+        self.allowed_fields = allowed_fields
+        self.default_field = default_field
+
+    def order_by(
+        self,
+        order: Optional[str] = Query(None),
+        order_desc: bool = Query(False),
+    ) -> Any:
+        if order and order in self.allowed_fields:
+            column = getattr(self.model, order)
+        else:
+            column = getattr(self.model, self.default_field)
+
+        return nullslast(desc(column) if order_desc else column)

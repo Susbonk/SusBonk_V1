@@ -9,14 +9,27 @@
 
   let email = $state('');
   let password = $state('');
+  let confirmPassword = $state('');
   let username = $state('');
   let error = $state('');
   let success = $state('');
   let isLoading = $state(false);
 
+  // Real-time password validation
+  let passwordError = $derived(
+    confirmPassword && password !== confirmPassword
+      ? 'Passwords do not match'
+      : ''
+  );
+
   async function handleRegister() {
-    if (!email || !password) {
-      error = 'Please fill in email and password';
+    if (!email || !password || !confirmPassword) {
+      error = 'Please fill in all required fields';
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      error = 'Passwords do not match';
       return;
     }
 
@@ -89,7 +102,22 @@
           />
         </div>
 
-        <button type="submit" class="w-full btn btn-secondary py-3 text-lg font-black" disabled={isLoading}>
+        <div>
+          <label for="confirmPassword" class="block font-bold mb-2">Confirm Password</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            bind:value={confirmPassword}
+            class="w-full p-3 border-3 border-black font-bold"
+            placeholder="••••••••"
+            required
+          />
+          {#if passwordError}
+            <p class="text-red-600 text-sm font-bold mt-1">{passwordError}</p>
+          {/if}
+        </div>
+
+        <button type="submit" class="w-full btn btn-secondary py-3 text-lg font-black" disabled={isLoading || !!passwordError}>
           {isLoading ? 'CREATING ACCOUNT...' : 'REGISTER'}
         </button>
       </form>
