@@ -1,0 +1,240 @@
+version: '3.8'
+
+services:
+  # Database Layer
+  postgres:
+    image: postgres:14-alpine
+    container_name: susbonk-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-susbonk}
+      POSTGRES_USER: ${POSTGRES_USER:-susbonk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-susbonk_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-susbonk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - susbonk-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: susbonk-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - susbonk-net
+
+  # OpenSearch Stack
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: susbonk-opensearch
+    environment:
+      - cluster.name=susbonk-cluster
+      - node.name=os01
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-Admin123!}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u admin:${OPENSEARCH_PASSWORD:-Admin123!} https://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - susbonk-net
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.0
+    container_name: susbonk-dashboards
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+      OPENSEARCH_USERNAME: admin
+      OPENSEARCH_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
+    ports:
+      - "5601:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - susbonk-net
+
+  # Log Platform Services
+  log-ingest:
+    build:
+      context: ./log-platform
+      dockerfile: Dockerfile.ingestd
+    container_name: susbonk-log-ingest
+    environment:
+      OPENSEARCH_URL: https://opensearch:9200
+      OPENSEARCH_USER: admin
+      OPENSEARCH_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "8080:8080"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - susbonk-net
+
+  alertd:
+    build:
+      context: ./log-platform
+      dockerfile: Dockerfile.alertd
+    container_name: susbonk-alertd
+    environment:
+      LOG_INGEST_URL: http://log-ingest:8080
+      OPENSEARCH_URL: https://opensearch:9200
+      OPENSEARCH_USER: admin
+      OPENSEARCH_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      log-ingest:
+        condition: service_healthy
+    networks:
+      - susbonk-net
+
+  # Backend Services
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: susbonk-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-susbonk}:${POSTGRES_PASSWORD:-susbonk_dev}@postgres:5432/${POSTGRES_DB:-susbonk}
+      REDIS_URL: redis://redis:6379
+      OPENSEARCH_URL: https://opensearch:9200
+      OPENSEARCH_USER: admin
+      OPENSEARCH_PASSWORD: ${OPENSEARCH_PASSWORD:-Admin123!}
+      LOG_INGEST_URL: http://log-ingest:8080
+      SECRET_KEY: ${SECRET_KEY:-dev_secret_key_change_in_production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      log-ingest:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - susbonk-net
+
+  telegram-bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: susbonk-telegram-bot
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      BACKEND_URL: http://backend:8000
+      REDIS_URL: redis://redis:6379
+      LOG_INGEST_URL: http://log-ingest:8080
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - susbonk-net
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: susbonk-ai-service
+    environment:
+      REDIS_URL: redis://redis:6379
+      LOG_INGEST_URL: http://log-ingest:8080
+      MODEL_PATH: ${MODEL_PATH:-/models}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "8001:8001"
+    volumes:
+      - ai-models:/models
+    depends_on:
+      redis:
+        condition: service_healthy
+      log-ingest:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - susbonk-net
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: susbonk-frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - susbonk-net
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  opensearch-data:
+    driver: local
+  ai-models:
+    driver: local
+
+networks:
+  susbonk-net:
+    driver: bridge
