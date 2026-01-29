@@ -13,6 +13,40 @@ Building a scalable spam detection platform for Telegram (with future Discord on
 
 ---
 
+### Jan 29, 2026 - 06:59 PM - Development Update
+
+**Commit**: `a436764c`  
+**Author**: SusBonk  
+**Changes**: feat(log-platform): add OpenSearch init, parsing utils, and examples
+
+5.1 OpenSearch Init Artifacts
+- Add index-template.json with ECS-compliant schema
+- Add ism-policy.json for 7-day retention
+- Add init.sh for idempotent initialization
+- Add opensearch-init service to docker-compose.yml
+
+5.2 Shared Parsing Utilities
+- Add parse.rs with email recipient parsing (CSV/JSON)
+- Add bytes_to_gb conversion helper
+- Include comprehensive unit tests (4 tests passing)
+
+5.3 Example Usage Scripts
+- Add with_curl.sh for curl-based testing
+- Add with_requests.py for Python INFO logs
+- Add warn_with_requests.py for Python WARN/ERROR logs
+- Add README with usage instructions
+
+All acceptance criteria met:
+✅ OpenSearch auto-initializes on startup
+✅ Alerting config supports multiple recipients with tests
+✅ Developers can manually test ingestion/alerting  
+
+**Technical Notes**: Another iteration in the development cycle. The usual dance of "this should work" followed by the inevitable debugging session.
+
+**Kiro Usage**: Leveraging automated dev log updates because manual documentation is for people who have their priorities straight.
+
+---
+
 ### Jan 29, 2026 - 05:31 PM - Development Update
 
 **Commit**: `a54354ec`  
@@ -716,6 +750,18 @@ GitHub's push protection caught it and refused. Had to run `git filter-branch` t
 **Commits Being Pushed**:
 a54354e fix: critical security vulnerabilities (5 issues resolved)
 7ce5ad0 feat(admin): Add admin interface components and infrastructure
+
+**Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
+
+**Kiro Usage**: Automated devlog update via pre-push hook because manual documentation is for people with better time management skills.
+
+---
+
+### Jan 29, 2026 - 06:59 PM - Push to main
+
+**Author**: SusBonk  
+**Commits Being Pushed**:
+a436764 feat(log-platform): add OpenSearch init, parsing utils, and examples
 
 **Development Notes**: Pushing latest changes. Coffee levels remain dangerously high, false hopes intact.
 
