@@ -4,7 +4,7 @@ Automated spam and scam protection for Telegram groups with a user-friendly web 
 
 ## Demo Video
 
-YouTube: `https://www.youtube.com/watch?v=REPLACE_ME`
+YouTube: https://youtu.be/pR2z8mwOCio
 
 ## System Overview
 
